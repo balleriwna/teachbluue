@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Hub - Personal Dashboard Bu Hanifah</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pastel: {
+              primary: '#4A8BB2',
+              soft: '#EBF4FA',
+              sky: '#BCE0F5',
+              navy: '#1E293B',
+              bg: '#F8FAFC',
+              lavender: '#ECE8FF',
+              pink: '#FCE8EF',
+              yellow: '#FFF7D6',
+              green: '#E2F7ED',
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Lucide Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .card-clean {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    }
+    .hero-banner {
+      background: linear-gradient(135deg, #4A8BB2 0%, #68A4C8 50%, #BCE0F5 100%);
+    }
+  </style>
+</head>
+<body class="bg-pastel-bg font-sans text-slate-800 min-h-screen flex flex-col md:flex-row antialiased w-full overflow-x-hidden">
+
+  <div id="app" class="flex w-full min-h-screen">
+    
+    <!-- HEADER MOBILE -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center z-30">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-pastel-primary text-white flex items-center justify-center font-bold text-sm">TH</div>
+        <span class="font-bold text-slate-800 text-base">Teacher Hub</span>
+      </div>
+      <button id="mobile-menu-btn" type="button" class="p-2 rounded-lg bg-slate-100 text-slate-700">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out overflow-y-auto flex-shrink-0">
+      <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-pastel-primary text-white flex items-center justify-center font-extrabold text-base shadow-sm">
+            TH
+          </div>
+          <div>
+            <h1 class="font-extrabold text-base leading-tight text-slate-800">Teacher Hub</h1>
+            <span class="text-xs text-slate-500 font-medium">Bu Hanifah Workspace</span>
+          </div>
+        </div>
+        <button id="close-sidebar-btn" type="button" class="md:hidden text-slate-400 hover:text-slate-600">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <nav class="p-4 space-y-6">
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 tracking-wider mb-3 px-3">UTAMA</p>
+          <div class="space-y-1">
+            <button type="button" data-tab="dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm bg-pastel-soft text-pastel-primary">
+              <i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i> Dashboard
+            </button>
+            <button type="button" data-tab="schedule" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-50">
+              <i data-lucide="calendar" class="w-4.5 h-4.5"></i> Jadwal Mengajar
+            </button>
+            <button type="button" data-tab="tasks" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-50">
+              <i data-lucide="check-square" class="w-4.5 h-4.5"></i> Task Manager
+            </button>
+            <button type="button" data-tab="notes" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-50">
+              <i data-lucide="file-text" class="w-4.5 h-4.5"></i> Quick Notes
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 tracking-wider mb-3 px-3">TEACHING TOOLS</p>
+          <div class="space-y-1">
+            <button type="button" data-tab="planner" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-50">
+              <i data-lucide="book-open" class="w-4.5 h-4.5"></i> Teaching Planner
+            </button>
+            <button type="button" data-tab="library" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-50">
+              <i data-lucide="library" class="w-4.5 h-4.5"></i> Digital Library
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 tracking-wider mb-3 px-3">PERSONAL SPACE</p>
+          <div class="space-y-1">
+            <button type="button" data-tab="habits" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-50">
+              <i data-lucide="award" class="w-4.5 h-4.5"></i> Habit Tracker
+            </button>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- BACKDROP MOBILE -->
+    <div id="backdrop" class="fixed inset-0 bg-slate-900/20 z-30 hidden md:hidden"></div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 w-full p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto">
+      
+      <!-- HERO BANNER WELCOME -->
+      <div class="hero-banner rounded-2xl p-6 md:p-8 text-white shadow-sm mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-md text-xs font-semibold">Dashboard Pengajar</span>
+            <span id="sync-status" class="bg-emerald-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold">Terhubung Live ⚡</span>
+          </div>
+          <h2 class="text-2xl md:text-3xl font-bold">Selamat Datang, Bu Hanifah! 🩵</h2>
+          <p id="current-date" class="text-xs md:text-sm font-medium text-white/90 mt-1">Memuat tanggal...</p>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <div class="bg-white px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm w-full md:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+            <input type="text" placeholder="Cari kegiatan atau tugas..." class="bg-transparent border-none text-xs font-medium outline-none w-full text-slate-800 placeholder:text-slate-400">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 1: DASHBOARD -->
+      <section id="view-dashboard" class="tab-view space-y-6 w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+          
+          <!-- TODAY'S SCHEDULE -->
+          <div class="lg:col-span-2 card-clean rounded-2xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Jadwal Mengajar Hari Ini</h3>
+                <p class="text-xs text-slate-400 font-medium">Agenda Kegiatan & Pengajaran Sekolah Dasar</p>
+              </div>
+              <span id="day-badge" class="bg-pastel-soft text-pastel-primary px-3 py-1 rounded-md text-xs font-bold">Hari Ini</span>
+            </div>
+            <div id="today-schedule-list" class="space-y-3"></div>
+          </div>
+
+          <!-- SIDE WIDGETS -->
+          <div class="space-y-6">
+            <div class="bg-amber-50/80 border border-amber-200/60 rounded-2xl p-5">
+              <h4 class="font-bold text-amber-900 text-xs uppercase tracking-wider mb-2">Motivasi Hari Ini</h4>
+              <p class="text-xs text-amber-900 leading-relaxed font-medium">
+                "Pendidikan bukan sekadar mengisi wadah, melainkan menyalakan api pengetahuan."
+              </p>
+            </div>
+
+            <div class="card-clean rounded-2xl p-6 space-y-4">
+              <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-sm text-slate-800">Tugas Hari Ini</h3>
+                <span id="task-count-badge" class="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-md font-bold">0</span>
+              </div>
+              
+              <form id="add-task-form-dash" class="flex gap-2">
+                <input id="task-input-dash" type="text" placeholder="Tambah tugas baru..." class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-pastel-primary font-medium">
+                <button type="submit" class="bg-pastel-primary text-white px-3 py-2 rounded-xl text-xs font-bold">Tambah</button>
+              </form>
+
+              <div id="tasks-preview-list" class="space-y-2"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 2: JADWAL MENGAJAR LENGKAP -->
+      <section id="view-schedule" class="tab-view hidden space-y-6 w-full">
+        <div class="card-clean rounded-2xl p-6 space-y-4 w-full">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 gap-2">
+            <div>
+              <h3 class="font-bold text-lg text-slate-800">Jadwal Mengajar Pekanan</h3>
+              <p class="text-xs text-slate-500 font-medium">Mata Pelajaran, Perpustakaan, dan Kegiatan Harian</p>
+            </div>
+            <button id="btn-add-schedule" type="button" class="bg-pastel-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i> Tambah Slot Jadwal
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200 w-full">
+            <table class="w-full border-collapse bg-white">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-left text-xs font-bold text-slate-600">
+                  <th class="p-3.5">WAKTU</th>
+                  <th class="p-3.5 text-center">SENIN</th>
+                  <th class="p-3.5 text-center">SELASA</th>
+                  <th class="p-3.5 text-center">RABU</th>
+                  <th class="p-3.5 text-center">KAMIS</th>
+                  <th class="p-3.5 text-center">JUM'AT</th>
+                </tr>
+              </thead>
+              <tbody id="full-schedule-table-body" class="text-xs font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: TASK MANAGER -->
+      <section id="view-tasks" class="tab-view hidden space-y-6 w-full">
+        <div class="card-clean rounded-2xl p-6 space-y-4 w-full">
+          <h3 class="font-bold text-lg text-slate-800">Daftar Tugas & Administrasi</h3>
+          <form id="add-task-form-main" class="flex gap-2">
+            <input id="task-input-main" type="text" placeholder="Tulis rencana atau tugas baru..." class="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-pastel-primary font-medium">
+            <button type="submit" class="bg-pastel-primary text-white font-bold px-5 py-2.5 rounded-xl text-sm">Simpan</button>
+          </form>
+          <div id="tasks-full-list" class="space-y-2 pt-2"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: QUICK NOTES -->
+      <section id="view-notes" class="tab-view hidden space-y-6 w-full">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-lg text-slate-800">Catatan Tempel</h3>
+          <button id="btn-add-note" type="button" class="bg-pastel-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i> Catatan Baru
+          </button>
+        </div>
+        <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+      </section>
+
+      <!-- TAB 5: TEACHING PLANNER -->
+      <section id="view-planner" class="tab-view hidden space-y-6 w-full">
+        <div class="card-clean rounded-2xl p-6 space-y-4 w-full">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+            <div>
+              <h3 class="font-bold text-lg text-slate-800">Teaching Planner (RPP & Modul Ajar)</h3>
+              <p class="text-xs text-slate-500 font-medium">Perencanaan modul pembelajaran harian Bu Hanifah</p>
+            </div>
+            <button id="btn-add-planner" type="button" class="bg-pastel-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i> Rencana Baru
+            </button>
+          </div>
+          <div id="planner-list" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- TAB 6: DIGITAL LIBRARY -->
+      <section id="view-library" class="tab-view hidden space-y-6 w-full">
+        <div class="card-clean rounded-2xl p-6 space-y-4 w-full">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+            <div>
+              <h3 class="font-bold text-lg text-slate-800">Digital Library & Buku Peminjaman</h3>
+              <p class="text-xs text-slate-500 font-medium">Katalog koleksi buku dan transaksi perpustakaan</p>
+            </div>
+            <button id="btn-add-book" type="button" class="bg-pastel-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i> Tambah Buku
+            </button>
+          </div>
+          <div id="library-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </section>
+
+      <!-- TAB 7: HABIT TRACKER -->
+      <section id="view-habits" class="tab-view hidden space-y-6 w-full">
+        <div class="card-clean rounded-2xl p-6 space-y-4 w-full">
+          <h3 class="font-bold text-lg text-slate-800">Habit Tracker Pengajar</h3>
+          <div class="space-y-3" id="habit-list"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL EDIT JADWAL -->
+  <div id="schedule-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="modal-title" class="font-bold text-base text-slate-800">Edit Slot Jadwal</h3>
+        <button id="close-modal-btn" type="button" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="schedule-form" class="space-y-3">
+        <input type="hidden" id="edit-schedule-id">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Hari</label>
+          <select id="edit-day" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-pastel-primary">
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Waktu Slot (contoh: 08.35–09.10)</label>
+          <input type="text" id="edit-timeslot" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-pastel-primary" required>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nama Kegiatan / Mata Pelajaran</label>
+          <input type="text" id="edit-activity" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-pastel-primary" required>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Kategori Tampilan</label>
+          <select id="edit-category" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-pastel-primary">
+            <option value="kelas">Kelas Pembelajaran (Biru Pastel)</option>
+            <option value="perpus">Perpustakaan (Pink Pastel)</option>
+            <option value="ibadah">Ibadah / Dzikir / Murojaah (Kuning Pastel)</option>
+            <option value="tahfidz">Tahfidz (Ungu Pastel)</option>
+            <option value="kegiatan_khusus">Pramuka / Ekskul / Literasi (Hijau Pastel)</option>
+            <option value="istirahat">Istirahat / Ishoma / Pulang (Abu-abu)</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-3">
+          <button type="button" id="btn-delete-schedule" class="bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2 rounded-xl text-xs font-bold mr-auto hidden">Hapus Slot</button>
+          <button type="button" id="btn-cancel-modal" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold">Batal</button>
+          <button type="submit" class="bg-pastel-primary text-white px-4 py-2 rounded-xl text-xs font-bold">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT TASK MANAGER -->
+  <div id="task-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-800">Edit Judul Tugas</h3>
+        <button id="close-task-modal-btn" type="button" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="task-edit-form" class="space-y-3">
+        <input type="hidden" id="edit-task-id">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Deskripsi Tugas</label>
+          <input type="text" id="edit-task-title" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-pastel-primary" required>
+        </div>
+        <div class="flex justify-end gap-2 pt-3">
+          <button type="button" id="btn-cancel-task-modal" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold">Batal</button>
+          <button type="submit" class="bg-pastel-primary text-white px-4 py-2 rounded-xl text-xs font-bold">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FIREBASE SDK & LOGIK SISTEM -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQGMbFxIH1Y1LCLVM1Qwb_JREYeX2U_ds",
+      authDomain: "teachberry.firebaseapp.com",
+      projectId: "teachberry",
+      storageBucket: "teachberry.firebasestorage.app",
+      messagingSenderId: "27935164603",
+      appId: "1:27935164603:web:2a381464d037693d8e819e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // MASTER DATA INITIAL JADWAL
+    const INITIAL_SCHEDULE = [
+      { id: '1', day: "Senin", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
+      { id: '2', day: "Senin", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
+      { id: '3', day: "Senin", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
+      { id: '4', day: "Senin", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
+      { id: '5', day: "Senin", timeSlot: "09.45–10.20", activity: "PERPUS (5)", category: "perpus" },
+      { id: '6', day: "Senin", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
+      { id: '7', day: "Senin", timeSlot: "10.35–11.10", activity: "5", category: "kelas" },
+      { id: '8', day: "Senin", timeSlot: "11.10–11.45", activity: "5 & PERPUS (2B)", category: "perpus" },
+      { id: '9', day: "Senin", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
+      { id: '10', day: "Senin", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: '11', day: "Senin", timeSlot: "13.00–13.35", activity: "6", category: "kelas" },
+      { id: '12', day: "Senin", timeSlot: "13.35–14.00", activity: "PERPUS (3C)", category: "perpus" },
+      { id: '13', day: "Senin", timeSlot: "14.00–14.30", activity: "MUROJAAH", category: "ibadah" },
+      { id: '14', day: "Selasa", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
+      { id: '15', day: "Selasa", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
+      { id: '16', day: "Selasa", timeSlot: "08.35–09.10", activity: "4A & PERPUS (2A)", category: "perpus" },
+      { id: '17', day: "Selasa", timeSlot: "09.10–09.45", activity: "4A", category: "kelas" },
+      { id: '18', day: "Selasa", timeSlot: "09.45–10.20", activity: "PERPUS (4A)", category: "perpus" },
+      { id: '19', day: "Selasa", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
+      { id: '20', day: "Selasa", timeSlot: "10.35–11.10", activity: "5", category: "kelas" },
+      { id: '21', day: "Selasa", timeSlot: "11.10–11.45", activity: "5 & PERPUS (1A)", category: "perpus" },
+      { id: '22', day: "Selasa", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
+      { id: '23', day: "Selasa", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: '24', day: "Selasa", timeSlot: "13.00–13.35", activity: "6 & PERPUS (2C)", category: "perpus" },
+      { id: '25', day: "Selasa", timeSlot: "13.35–14.00", activity: "6", category: "kelas" },
+      { id: '26', day: "Selasa", timeSlot: "14.00–14.30", activity: "MUROJAAH", category: "ibadah" },
+      { id: '27', day: "Rabu", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
+      { id: '28', day: "Rabu", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
+      { id: '29', day: "Rabu", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
+      { id: '30', day: "Rabu", timeSlot: "11.10–11.45", activity: "4A", category: "kelas" },
+      { id: '31', day: "Rabu", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
+      { id: '32', day: "Rabu", timeSlot: "12.25–13.00", activity: "4A", category: "kelas" },
+      { id: '33', day: "Rabu", timeSlot: "13.00–13.35", activity: "PERPUS (4B)", category: "perpus" },
+      { id: '34', day: "Rabu", timeSlot: "13.35–14.00", activity: "4B", category: "kelas" },
+      { id: '35', day: "Rabu", timeSlot: "14.00–14.30", activity: "MUROJAAH", category: "ibadah" },
+      { id: '36', day: "Kamis", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
+      { id: '37', day: "Kamis", timeSlot: "07.35–08.35", activity: "PRAMUKA", category: "kegiatan_khusus" },
+      { id: '38', day: "Kamis", timeSlot: "08.35–09.10", activity: "4A & PERPUS (3B)", category: "perpus" },
+      { id: '39', day: "Kamis", timeSlot: "09.45–10.20", activity: "TKA LITERASI", category: "kegiatan_khusus" },
+      { id: '40', day: "Kamis", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
+      { id: '41', day: "Kamis", timeSlot: "10.35–11.10", activity: "SENI (4A)", category: "kelas" },
+      { id: '42', day: "Kamis", timeSlot: "11.10–11.45", activity: "SENI (4A)", category: "kelas" },
+      { id: '43', day: "Kamis", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
+      { id: '44', day: "Kamis", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: '45', day: "Kamis", timeSlot: "13.00–13.35", activity: "6 & PERPUS (1B)", category: "perpus" },
+      { id: '46', day: "Kamis", timeSlot: "14.00–14.30", activity: "TAHFIDZ", category: "tahfidz" },
+      { id: '47', day: "Jumat", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
+      { id: '48', day: "Jumat", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
+      { id: '49', day: "Jumat", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
+      { id: '50', day: "Jumat", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
+      { id: '51', day: "Jumat", timeSlot: "09.45–10.20", activity: "5 & PERPUS (3A)", category: "perpus" },
+      { id: '52', day: "Jumat", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
+      { id: '53', day: "Jumat", timeSlot: "10.35–11.10", activity: "5 & PERPUS (1C)", category: "perpus" },
+      { id: '54', day: "Jumat", timeSlot: "11.10–12.25", activity: "ISHOMA", category: "istirahat" },
+      { id: '55', day: "Jumat", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: '56', day: "Jumat", timeSlot: "13.00–14.00", activity: "EKSKUL / TKA LITERASI", category: "kegiatan_khusus" },
+      { id: '57', day: "Jumat", timeSlot: "14.00–14.30", activity: "PULANG: 14.30 WIB", category: "istirahat" }
+    ];
+
+    let scheduleList = [...INITIAL_SCHEDULE];
+    let tasks = [
+      { id: '1', title: 'Menyiapkan Modul Pembelajaran Kelas 4B', completed: false },
+      { id: '2', title: 'Koreksi Lembar Kerja Siswa Bahasa Indonesia', completed: true }
+    ];
+    let planners = [
+      { id: '1', title: 'Bahasa Indonesia - Teks Deskripsi', class: 'Kelas 4B', date: '2026-10-29', topic: 'Membaca dan Mengamati Paragraf' },
+      { id: '2', title: 'Seni Rupa - Ragam Hias Nusantara', class: 'Kelas 4A', date: '2026-10-30', topic: 'Membuat Motif Batik Sederhana' }
+    ];
+    let books = [
+      { id: '1', title: 'Ensiklopedia Sains Anak', author: 'Bambang S.', status: 'Tersedia' },
+      { id: '2', title: 'Cerita Rakyat Nusantara', author: 'Lilis A.', status: 'Dipinjam 4B' }
+    ];
+
+    const getBadgeStyle = (cat) => {
+      switch(cat) {
+        case 'ibadah': return 'bg-pastel-yellow text-amber-900 border border-amber-200';
+        case 'tahfidz': return 'bg-pastel-lavender text-purple-900 border border-purple-200';
+        case 'kelas': return 'bg-pastel-soft text-pastel-primary border border-pastel-sky';
+        case 'perpus': return 'bg-pastel-pink text-pink-900 border border-pink-200';
+        case 'istirahat': return 'bg-slate-100 text-slate-500 font-normal';
+        case 'kegiatan_khusus': return 'bg-pastel-green text-emerald-900 border border-emerald-200';
+        default: return 'bg-slate-100 text-slate-700';
+      }
+    };
+
+    // NAVIGASI TAB
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('bg-pastel-soft', 'text-pastel-primary');
+        el.classList.add('text-slate-600');
+      });
+
+      const targetView = document.getElementById(`view-${tabName}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-pastel-soft', 'text-pastel-primary');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      document.getElementById('sidebar').classList.add('-translate-x-full');
+      document.getElementById('backdrop').classList.add('hidden');
+    };
+
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tab = e.currentTarget.getAttribute('data-tab');
+        if (tab) switchTab(tab);
+      });
+    });
+
+    // RENDER JADWAL HARI INI
+    const today = new Date();
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const currentDayName = dayNames[today.getDay()];
+    
+    document.getElementById('current-date').textContent = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('day-badge').textContent = currentDayName;
+
+    function renderTodaySchedule() {
+      const container = document.getElementById('today-schedule-list');
+      const targetDay = (currentDayName === 'Minggu' || currentDayName === 'Sabtu') ? 'Senin' : currentDayName;
+      const filtered = scheduleList.filter(s => s.day === targetDay);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs font-semibold">Tidak ada jadwal mengajar hari ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div class="flex items-center justify-between p-3 rounded-xl ${getBadgeStyle(item.category)}">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold px-2 py-0.5 bg-white/80 rounded">${item.timeSlot}</span>
+            <span class="font-bold text-xs">${item.activity}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/40">${item.category}</span>
+            <button type="button" onclick="openEditModal('${item.id}')" class="p-1 hover:bg-white/60 rounded text-slate-600">
+              <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // RENDER JADWAL PEKANAN
+    function renderFullScheduleTable() {
+      const timeSlots = Array.from(new Set(scheduleList.map(s => s.timeSlot)));
+      const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+      const tbody = document.getElementById('full-schedule-table-body');
+
+      tbody.innerHTML = timeSlots.map(slot => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="p-3 font-semibold text-slate-500 whitespace-nowrap">${slot}</td>
+          ${days.map(day => {
+            const match = scheduleList.find(s => s.day === day && s.timeSlot === slot);
+            return match 
+              ? `<td class="p-2 text-center">
+                  <div class="p-2 rounded-lg ${getBadgeStyle(match.category)} font-bold text-center flex items-center justify-between gap-1">
+                    <span class="flex-1">${match.activity}</span>
+                    <button type="button" onclick="openEditModal('${match.id}')" class="p-1 rounded bg-white/60 hover:bg-white text-slate-700">
+                      <i data-lucide="edit-2" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </td>`
+              : `<td class="p-2 text-slate-300 text-center">
+                  <button type="button" onclick="openAddModalForSlot('${day}', '${slot}')" class="w-full p-2 border border-dashed border-slate-200 rounded-lg text-[10px] text-slate-400 hover:border-pastel-primary hover:text-pastel-primary">
+                    + Tambah
+                  </button>
+                </td>`;
+          }).join('')}
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // FIRESTORE REAL-TIME LISTENERS
+    const scheduleColRef = collection(db, "users", "bu_hanifah", "schedule");
+    const tasksColRef = collection(db, "users", "bu_hanifah", "tasks");
+
+    onSnapshot(scheduleColRef, (snapshot) => {
+      document.getElementById('sync-status').textContent = "Terhubung Live ⚡";
+      document.getElementById('sync-status').className = "bg-emerald-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold";
+
+      if (!snapshot.empty) {
+        scheduleList = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      }
+      renderTodaySchedule();
+      renderFullScheduleTable();
+    }, (error) => {
+      console.warn("Firestore schedule offline:", error);
+      document.getElementById('sync-status').textContent = "Mode Lokal / Standalone";
+      document.getElementById('sync-status').className = "bg-amber-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold";
+      renderTodaySchedule();
+      renderFullScheduleTable();
+    });
+
+    onSnapshot(tasksColRef, (snapshot) => {
+      if (!snapshot.empty) {
+        tasks = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      }
+      renderTasks();
+    }, (error) => {
+      console.warn("Firestore tasks offline:", error);
+      renderTasks();
+    });
+
+    // MODAL EDIT JADWAL
+    const modal = document.getElementById('schedule-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const form = document.getElementById('schedule-form');
+    const deleteBtn = document.getElementById('btn-delete-schedule');
+
+    window.openEditModal = function(id) {
+      const item = scheduleList.find(s => s.id === id);
+      if (!item) return;
+
+      document.getElementById('edit-schedule-id').value = item.id;
+      document.getElementById('edit-day').value = item.day;
+      document.getElementById('edit-timeslot').value = item.timeSlot;
+      document.getElementById('edit-activity').value = item.activity;
+      document.getElementById('edit-category').value = item.category;
+
+      modalTitle.textContent = "Edit Slot Jadwal";
+      deleteBtn.classList.remove('hidden');
+      modal.classList.remove('hidden');
+    };
+
+    window.openAddModalForSlot = function(day, slot) {
+      document.getElementById('edit-schedule-id').value = '';
+      document.getElementById('edit-day').value = day;
+      document.getElementById('edit-timeslot').value = slot;
+      document.getElementById('edit-activity').value = '';
+      document.getElementById('edit-category').value = 'kelas';
+
+      modalTitle.textContent = "Tambah Slot Jadwal";
+      deleteBtn.classList.add('hidden');
+      modal.classList.remove('hidden');
+    };
+
+    document.getElementById('btn-add-schedule').addEventListener('click', () => {
+      openAddModalForSlot('Senin', '08.35–09.10');
+    });
+
+    document.getElementById('close-modal-btn').addEventListener('click', () => modal.classList.add('hidden'));
+    document.getElementById('btn-cancel-modal').addEventListener('click', () => modal.classList.add('hidden'));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-schedule-id').value;
+      const day = document.getElementById('edit-day').value;
+      const timeSlot = document.getElementById('edit-timeslot').value;
+      const activity = document.getElementById('edit-activity').value;
+      const category = document.getElementById('edit-category').value;
+      const payload = { day, timeSlot, activity, category };
+
+      if (id) {
+        scheduleList = scheduleList.map(s => s.id === id ? { id, ...payload } : s);
+        try { await updateDoc(doc(db, "users", "bu_hanifah", "schedule", id), payload); } catch (e) {}
+      } else {
+        const newId = Date.now().toString();
+        scheduleList.push({ id: newId, ...payload });
+        try { await setDoc(doc(db, "users", "bu_hanifah", "schedule", newId), payload); } catch (e) {}
+      }
+
+      modal.classList.add('hidden');
+      renderTodaySchedule();
+      renderFullScheduleTable();
+    });
+
+    deleteBtn.addEventListener('click', async () => {
+      const id = document.getElementById('edit-schedule-id').value;
+      if (!id) return;
+      scheduleList = scheduleList.filter(s => s.id !== id);
+      try { await deleteDoc(doc(db, "users", "bu_hanifah", "schedule", id)); } catch (e) {}
+      modal.classList.add('hidden');
+      renderTodaySchedule();
+      renderFullScheduleTable();
+    });
+
+    // TASK MANAGER LOGIC
+    const taskModal = document.getElementById('task-modal');
+    
+    function renderTasks() {
+      document.getElementById('task-count-badge').textContent = tasks.filter(t => !t.completed).length;
+
+      const renderList = (containerId) => {
+        const el = document.getElementById(containerId);
+        if (tasks.length === 0) {
+          el.innerHTML = `<p class="text-xs text-slate-400 font-medium text-center py-4">Belum ada tugas.</p>`;
+          return;
+        }
+        el.innerHTML = tasks.map(t => `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <input type="checkbox" ${t.completed ? 'checked' : ''} 
+                onchange="toggleTask('${t.id}')"
+                class="rounded text-pastel-primary focus:ring-0 w-4 h-4 cursor-pointer">
+              <span class="text-xs font-semibold ${t.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${t.title}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="openEditTaskModal('${t.id}')" class="text-slate-400 hover:text-pastel-primary p-1">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+              </button>
+              <button type="button" onclick="deleteTask('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      };
+
+      renderList('tasks-preview-list');
+      renderList('tasks-full-list');
+      lucide.createIcons();
+    }
+
+    window.toggleTask = async function(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      const newStatus = !task.completed;
+      tasks = tasks.map(t => t.id === id ? { ...t, completed: newStatus } : t);
+      try { await updateDoc(doc(db, "users", "bu_hanifah", "tasks", id), { completed: newStatus }); } catch (e) {}
+      renderTasks();
+    };
+
+    window.deleteTask = async function(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      try { await deleteDoc(doc(db, "users", "bu_hanifah", "tasks", id)); } catch (e) {}
+      renderTasks();
+    };
+
+    window.openEditTaskModal = function(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      document.getElementById('edit-task-id').value = task.id;
+      document.getElementById('edit-task-title').value = task.title;
+      taskModal.classList.remove('hidden');
+    };
+
+    document.getElementById('close-task-modal-btn').addEventListener('click', () => taskModal.classList.add('hidden'));
+    document.getElementById('btn-cancel-task-modal').addEventListener('click', () => taskModal.classList.add('hidden'));
+
+    document.getElementById('task-edit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-task-id').value;
+      const title = document.getElementById('edit-task-title').value.trim();
+      if (!title) return;
+      tasks = tasks.map(t => t.id === id ? { ...t, title } : t);
+      try { await updateDoc(doc(db, "users", "bu_hanifah", "tasks", id), { title }); } catch (e) {}
+      taskModal.classList.add('hidden');
+      renderTasks();
+    });
+
+    async function addTask(inputEl) {
+      const title = inputEl.value.trim();
+      if (!title) return;
+      const newId = Date.now().toString();
+      const payload = { title, completed: false };
+      tasks.push({ id: newId, ...payload });
+      try { await setDoc(doc(db, "users", "bu_hanifah", "tasks", newId), payload); } catch (e) {}
+      inputEl.value = '';
+      renderTasks();
+    }
+
+    document.getElementById('add-task-form-dash').addEventListener('submit', (e) => {
+      e.preventDefault();
+      addTask(document.getElementById('task-input-dash'));
+    });
+
+    document.getElementById('add-task-form-main').addEventListener('submit', (e) => {
+      e.preventDefault();
+      addTask(document.getElementById('task-input-main'));
+    });
+
+    // TEACHING PLANNER
+    function renderPlanners() {
+      const container = document.getElementById('planner-list');
+      container.innerHTML = planners.map(p => `
+        <div class="p-4 rounded-xl border border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-pastel-soft text-pastel-primary">${p.class}</span>
+            <h4 class="font-bold text-sm text-slate-800 mt-1">${p.title}</h4>
+            <p class="text-xs text-slate-500">Topik: ${p.topic} • Tanggal: ${p.date}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="editPlanner('${p.id}')" class="text-xs font-bold text-pastel-primary bg-pastel-soft px-3 py-1.5 rounded-lg">Edit Rencana</button>
+            <button type="button" onclick="deletePlanner('${p.id}')" class="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-lg">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.editPlanner = function(id) {
+      const title = prompt("Masukkan Judul RPP Baru:");
+      if (!title) return;
+      planners = planners.map(p => p.id === id ? { ...p, title } : p);
+      renderPlanners();
+    };
+
+    window.deletePlanner = function(id) {
+      planners = planners.filter(p => p.id !== id);
+      renderPlanners();
+    };
+
+    document.getElementById('btn-add-planner').addEventListener('click', () => {
+      const title = prompt("Masukkan Judul RPP / Modul Ajar:");
+      if (!title) return;
+      planners.push({ id: Date.now().toString(), title, class: 'Kelas 4B', date: '2026-11-01', topic: 'Materi Pembelajaran Baru' });
+      renderPlanners();
+    });
+
+    // DIGITAL LIBRARY
+    function renderLibrary() {
+      const container = document.getElementById('library-list');
+      container.innerHTML = books.map(b => `
+        <div class="p-4 rounded-xl border border-slate-100 bg-white flex justify-between items-center">
+          <div>
+            <h4 class="font-bold text-sm text-slate-800">${b.title}</h4>
+            <p class="text-xs text-slate-500">Penulis: ${b.author}</p>
+            <span class="inline-block mt-2 text-[10px] font-bold px-2.5 py-0.5 rounded ${b.status === 'Tersedia' ? 'bg-pastel-green text-emerald-800' : 'bg-pastel-pink text-pink-900'}">${b.status}</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button type="button" onclick="toggleBookStatus('${b.id}')" class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">Ubah Status</button>
+            <button type="button" onclick="deleteBook('${b.id}')" class="text-xs font-bold text-rose-500 bg-rose-50 px-2.5 py-1 rounded-lg">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.toggleBookStatus = function(id) {
+      books = books.map(b => b.id === id ? { ...b, status: b.status === 'Tersedia' ? 'Dipinjam' : 'Tersedia' } : b);
+      renderLibrary();
+    };
+
+    window.deleteBook = function(id) {
+      books = books.filter(b => b.id !== id);
+      renderLibrary();
+    };
+
+    document.getElementById('btn-add-book').addEventListener('click', () => {
+      const title = prompt("Judul Buku Baru:");
+      if (!title) return;
+      books.push({ id: Date.now().toString(), title, author: 'Penulis Umum', status: 'Tersedia' });
+      renderLibrary();
+    });
+
+    // HABIT TRACKER
+    const habits = [
+      { title: "Menyiapkan Modul Ajar Pekanan", done: true },
+      { title: "Dzikir Pagi Bersama Siswa", done: true },
+      { title: "Pemeriksaan Buku Tugas Bahasa Indonesia", done: false },
+      { title: "Pencatatan Peminjaman Buku Perpustakaan", done: false }
+    ];
+
+    document.getElementById('habit-list').innerHTML = habits.map(h => `
+      <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-white">
+        <span class="text-xs font-semibold text-slate-700">${h.title}</span>
+        <span class="text-xs font-bold px-3 py-1 rounded-md ${h.done ? 'bg-pastel-green text-emerald-800' : 'bg-slate-100 text-slate-400'}">
+          ${h.done ? 'Selesai' : 'Belum'}
+        </span>
+      </div>
+    `).join('');
+
+    // STICKY NOTES
+    document.getElementById('btn-add-note').addEventListener('click', () => {
+      const grid = document.getElementById('notes-grid');
+      const colors = ['bg-pastel-yellow', 'bg-pastel-pink', 'bg-pastel-lavender', 'bg-pastel-green'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      const noteHtml = `
+        <div class="${color} p-4 rounded-xl border border-black/5 space-y-2">
+          <input type="text" placeholder="Judul Catatan..." class="bg-transparent font-bold text-xs text-slate-800 outline-none w-full placeholder:text-slate-500">
+          <textarea placeholder="Tulis rincian catatan di sini..." class="bg-transparent text-xs font-medium text-slate-700 outline-none w-full resize-none h-20 placeholder:text-slate-400"></textarea>
+        </div>
+      `;
+      grid.insertAdjacentHTML('beforeend', noteHtml);
+    });
+
+    // MOBILE SIDEBAR TOGGLE
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('backdrop');
+
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      sidebar.classList.remove('-translate-x-full');
+      backdrop.classList.remove('hidden');
+    });
+
+    document.getElementById('close-sidebar-btn').addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      backdrop.classList.add('hidden');
+    });
+
+    backdrop.addEventListener('click', () => {
+      sidebar.classList.add('-translate-x-full');
+      backdrop.classList.add('hidden');
+    });
+
+    // INIT RENDER
+    renderTodaySchedule();
+    renderFullScheduleTable();
+    renderTasks();
+    renderPlanners();
+    renderLibrary();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
