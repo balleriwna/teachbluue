@@ -49,7 +49,40 @@
 </head>
 <body class="bg-pastel-bg font-sans text-slate-800 min-h-screen flex flex-col md:flex-row antialiased w-full overflow-x-hidden">
 
-  <div id="app" class="flex w-full min-h-screen">
+  <!-- LOGIN GATE (Firebase Auth) -->
+  <div id="login-screen" class="fixed inset-0 z-[100] bg-gradient-to-br from-pastel-soft via-white to-pastel-sky flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 w-full max-w-sm space-y-5">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-pastel-primary text-white flex items-center justify-center font-extrabold text-xl shadow-sm">TH</div>
+        <h1 class="text-xl font-extrabold text-slate-800">Teacher Hub</h1>
+        <p class="text-xs text-slate-500 font-medium">Bu Hanifah Workspace</p>
+      </div>
+      <form id="login-form" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">Email</label>
+          <input id="login-email" type="email" autocomplete="username" placeholder="email@contoh.com"
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pastel-primary font-medium" required>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">Kata Sandi</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••"
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pastel-primary font-medium" required>
+        </div>
+        <p id="login-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2"></p>
+        <button type="submit" id="btn-login" class="w-full bg-pastel-primary text-white font-bold py-3 rounded-xl text-sm hover:opacity-95 transition shadow-sm">
+          Masuk 🩵
+        </button>
+        <button type="button" id="btn-register" class="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-sm hover:bg-slate-200 transition">
+          Daftar akun baru
+        </button>
+      </form>
+      <p class="text-[10px] text-center text-slate-400 leading-relaxed">
+        Pertama kali? Klik <b>Daftar akun baru</b> pakai email kamu + password <b>bismillah</b> (atau password lain yang kamu ingat).
+      </p>
+    </div>
+  </div>
+
+  <div id="app" class="flex w-full min-h-screen opacity-0 pointer-events-none">
     
     <!-- HEADER MOBILE -->
     <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center z-30">
@@ -118,6 +151,13 @@
             </button>
           </div>
         </div>
+      
+        <div class="pt-4 border-t border-slate-100 mt-4">
+          <button type="button" id="btn-logout" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-rose-500 hover:bg-rose-50">
+            <i data-lucide="log-out" class="w-4.5 h-4.5"></i> Keluar
+          </button>
+        </div>
+
       </nav>
     </aside>
 
@@ -359,9 +399,17 @@
   </div>
 
   <!-- FIREBASE SDK & LOGIK SISTEM -->
+    <!-- FIREBASE SDK & LOGIK SISTEM (FIXED REAL-TIME SYNC) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import {
+      getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import {
+      getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc,
+      getDocs, writeBatch, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCQGMbFxIH1Y1LCLVM1Qwb_JREYeX2U_ds",
@@ -374,6 +422,132 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+        const auth = getAuth(app);
+
+    // Data tetap di path bersama biar semua device (setelah login) lihat data yang sama
+    const USER_ID = "bu_hanifah";
+
+    function showApp() {
+      const screen = document.getElementById('login-screen');
+      if (screen) screen.classList.add('hidden');
+      const appEl = document.getElementById('app');
+      if (appEl) {
+        appEl.classList.remove('opacity-0', 'pointer-events-none');
+      }
+      try { lucide.createIcons(); } catch {}
+    }
+
+    function showLogin() {
+      const screen = document.getElementById('login-screen');
+      if (screen) screen.classList.remove('hidden');
+      const appEl = document.getElementById('app');
+      if (appEl) {
+        appEl.classList.add('opacity-0', 'pointer-events-none');
+      }
+    }
+
+    function setLoginError(msg) {
+      const err = document.getElementById('login-error');
+      if (!err) return;
+      if (!msg) {
+        err.classList.add('hidden');
+        err.textContent = '';
+        return;
+      }
+      err.textContent = msg;
+      err.classList.remove('hidden');
+    }
+
+    function mapAuthError(code) {
+      const m = {
+        'auth/invalid-email': 'Format email tidak valid.',
+        'auth/user-not-found': 'Akun belum ada. Klik "Daftar akun baru".',
+        'auth/wrong-password': 'Kata sandi salah.',
+        'auth/invalid-credential': 'Email atau kata sandi salah.',
+        'auth/email-already-in-use': 'Email sudah terdaftar. Langsung Masuk saja.',
+        'auth/weak-password': 'Password minimal 6 karakter.',
+        'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu sebentar.',
+        'auth/network-request-failed': 'Tidak ada koneksi internet.',
+        'auth/operation-not-allowed': 'Email/Password belum diaktifkan di Firebase Console.',
+      };
+      return m[code] || ('Gagal: ' + code);
+    }
+
+    let authReady = false;
+    let unsubscribers = [];
+    let dataSyncStarted = false;
+
+    onAuthStateChanged(auth, (user) => {
+      authReady = true;
+      if (user) {
+        showApp();
+        // start data listeners only when logged in
+        if (typeof window.__startDataSync === 'function') {
+          window.__startDataSync();
+        }
+      } else {
+        // cleanup listeners
+        unsubscribers.forEach(fn => { try { fn(); } catch {} });
+        unsubscribers = [];
+        dataSyncStarted = false;
+        showLogin();
+      }
+    });
+
+    async function doLogin(e) {
+      e.preventDefault();
+      const email = (document.getElementById('login-email')?.value || '').trim();
+      const password = document.getElementById('login-password')?.value || '';
+      const btn = document.getElementById('btn-login');
+      if (btn) { btn.disabled = true; btn.textContent = 'Sebentar...'; }
+      setLoginError('');
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        console.error(err);
+        setLoginError(mapAuthError(err.code));
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Masuk 🩵'; }
+    }
+
+    async function doRegister() {
+      const email = (document.getElementById('login-email')?.value || '').trim();
+      const password = document.getElementById('login-password')?.value || '';
+      if (!email || !password) {
+        setLoginError('Isi email dan password dulu.');
+        return;
+      }
+      if (password.length < 6) {
+        setLoginError('Password minimal 6 karakter.');
+        return;
+      }
+      const btn = document.getElementById('btn-register');
+      if (btn) { btn.disabled = true; btn.textContent = 'Mendaftar...'; }
+      setLoginError('');
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        setLoginError('');
+      } catch (err) {
+        console.error(err);
+        setLoginError(mapAuthError(err.code));
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Daftar akun baru'; }
+    }
+
+    document.getElementById('login-form')?.addEventListener('submit', doLogin);
+    document.getElementById('btn-register')?.addEventListener('click', doRegister);
+
+    document.getElementById('btn-logout')?.addEventListener('click', async () => {
+      if (!confirm('Yakin ingin keluar?')) return;
+      try { await signOut(auth); } catch {}
+    });
+
+    // Single shared workspace path (semua device baca/tulis ke sini)
+    
+    const scheduleColRef = collection(db, "users", USER_ID, "schedule");
+    const tasksColRef = collection(db, "users", USER_ID, "tasks");
+    const notesColRef = collection(db, "users", USER_ID, "notes");
 
     // MASTER DATA INITIAL JADWAL
     const INITIAL_SCHEDULE = [
@@ -436,11 +610,15 @@
       { id: '57', day: "Jumat", timeSlot: "14.00–14.30", activity: "PULANG: 14.30 WIB", category: "istirahat" }
     ];
 
-    let scheduleList = [...INITIAL_SCHEDULE];
-    let tasks = [
+    const INITIAL_TASKS = [
       { id: '1', title: 'Menyiapkan Modul Pembelajaran Kelas 4B', completed: false },
       { id: '2', title: 'Koreksi Lembar Kerja Siswa Bahasa Indonesia', completed: true }
     ];
+
+    // State lokal — SELALU di-update dari onSnapshot (sumber kebenaran = Firestore)
+    let scheduleList = [];
+    let tasks = [];
+    let notes = [];
     let planners = [
       { id: '1', title: 'Bahasa Indonesia - Teks Deskripsi', class: 'Kelas 4B', date: '2026-10-29', topic: 'Membaca dan Mengamati Paragraf' },
       { id: '2', title: 'Seni Rupa - Ragam Hias Nusantara', class: 'Kelas 4A', date: '2026-10-30', topic: 'Membuat Motif Batik Sederhana' }
@@ -449,6 +627,34 @@
       { id: '1', title: 'Ensiklopedia Sains Anak', author: 'Bambang S.', status: 'Tersedia' },
       { id: '2', title: 'Cerita Rakyat Nusantara', author: 'Lilis A.', status: 'Dipinjam 4B' }
     ];
+
+    let scheduleReady = false;
+    let tasksReady = false;
+
+    function setSyncStatus(ok, msg) {
+      const el = document.getElementById('sync-status');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = ok
+        ? "bg-emerald-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold"
+        : "bg-amber-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold";
+    }
+
+    function toast(msg, isError) {
+      let c = document.getElementById('toast-box');
+      if (!c) {
+        c = document.createElement('div');
+        c.id = 'toast-box';
+        c.className = 'fixed bottom-4 right-4 z-[9999] flex flex-col gap-2';
+        document.body.appendChild(c);
+      }
+      const el = document.createElement('div');
+      el.className = (isError ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200')
+        + ' border px-4 py-2.5 rounded-xl text-xs font-semibold shadow-lg max-w-xs';
+      el.textContent = msg;
+      c.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 2800);
+    }
 
     const getBadgeStyle = (cat) => {
       switch(cat) {
@@ -462,23 +668,104 @@
       }
     };
 
-    // NAVIGASI TAB
+    // ---------- SEED DATA KE FIRESTORE (hanya jika koleksi masih kosong) ----------
+    
+    window.__startDataSync = function() {
+      if (dataSyncStarted) return;
+      if (!auth.currentUser) return;
+      dataSyncStarted = true;
+      seedIfEmpty();
+      attachListeners();
+    };
+
+async function seedIfEmpty() {
+      try {
+        const schedSnap = await getDocs(scheduleColRef);
+        if (schedSnap.empty) {
+          console.log('[seed] Menulis jadwal awal ke Firestore...');
+          const batch = writeBatch(db);
+          INITIAL_SCHEDULE.forEach(item => {
+            const { id, ...data } = item;
+            batch.set(doc(scheduleColRef, id), { ...data, updatedAt: serverTimestamp() });
+          });
+          await batch.commit();
+          console.log('[seed] Jadwal awal tersimpan.');
+          toast('Jadwal awal berhasil disimpan ke cloud ☁️');
+        }
+
+        const taskSnap = await getDocs(tasksColRef);
+        if (taskSnap.empty) {
+          const batch = writeBatch(db);
+          INITIAL_TASKS.forEach(item => {
+            const { id, ...data } = item;
+            batch.set(doc(tasksColRef, id), { ...data, updatedAt: serverTimestamp() });
+          });
+          await batch.commit();
+        }
+      } catch (err) {
+        console.error('[seed] Gagal seed:', err);
+        setSyncStatus(false, 'Gagal sync — cek Rules Firestore');
+        toast('Tidak bisa menulis ke Firebase. Cek Security Rules!', true);
+      }
+    }
+
+    // ---------- REAL-TIME LISTENERS (sumber kebenaran) ----------
+    function attachListeners() {
+      const u1 = onSnapshot(scheduleColRef, (snapshot) => {
+      setSyncStatus(true, 'Terhubung Live ⚡');
+      scheduleList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      scheduleReady = true;
+      renderTodaySchedule();
+      renderFullScheduleTable();
+    }, (error) => {
+      console.warn('Schedule listener error:', error);
+      setSyncStatus(false, 'Mode Offline / Rules');
+      if (!scheduleReady) {
+        scheduleList = [...INITIAL_SCHEDULE];
+        renderTodaySchedule();
+        renderFullScheduleTable();
+      }
+    });
+
+      const u2 = onSnapshot(tasksColRef, (snapshot) => {
+      tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      tasksReady = true;
+      renderTasks();
+    }, (error) => {
+      console.warn('Tasks listener error:', error);
+      if (!tasksReady) {
+        tasks = [...INITIAL_TASKS];
+        renderTasks();
+      }
+    });
+
+      const u3 = onSnapshot(notesColRef, (snapshot) => {
+      notes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderNotes();
+    }, (error) => {
+      console.warn('Notes listener error:', error);
+    });
+
+      unsubscribers.push(u1, u2, u3);
+    }
+
+
+    // Jalankan seed sekali saat load
+
+    // ---------- NAVIGASI TAB ----------
     window.switchTab = function(tabName) {
       document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.remove('bg-pastel-soft', 'text-pastel-primary');
         el.classList.add('text-slate-600');
       });
-
       const targetView = document.getElementById(`view-${tabName}`);
       if (targetView) targetView.classList.remove('hidden');
-
       const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
       if (activeBtn) {
         activeBtn.classList.add('bg-pastel-soft', 'text-pastel-primary');
         activeBtn.classList.remove('text-slate-600');
       }
-
       document.getElementById('sidebar').classList.add('-translate-x-full');
       document.getElementById('backdrop').classList.add('hidden');
     };
@@ -490,18 +777,20 @@
       });
     });
 
-    // RENDER JADWAL HARI INI
+    // ---------- TANGGAL ----------
     const today = new Date();
     const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const currentDayName = dayNames[today.getDay()];
-    
     document.getElementById('current-date').textContent = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     document.getElementById('day-badge').textContent = currentDayName;
 
+    // ---------- RENDER JADWAL HARI INI ----------
     function renderTodaySchedule() {
       const container = document.getElementById('today-schedule-list');
       const targetDay = (currentDayName === 'Minggu' || currentDayName === 'Sabtu') ? 'Senin' : currentDayName;
-      const filtered = scheduleList.filter(s => s.day === targetDay);
+      const filtered = scheduleList
+        .filter(s => s.day === targetDay)
+        .sort((a, b) => String(a.timeSlot).localeCompare(String(b.timeSlot)));
 
       if (filtered.length === 0) {
         container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs font-semibold">Tidak ada jadwal mengajar hari ini.</div>`;
@@ -525,18 +814,23 @@
       lucide.createIcons();
     }
 
-    // RENDER JADWAL PEKANAN
+    // ---------- RENDER TABEL PEKANAN ----------
     function renderFullScheduleTable() {
-      const timeSlots = Array.from(new Set(scheduleList.map(s => s.timeSlot)));
+      const timeSlots = Array.from(new Set(scheduleList.map(s => s.timeSlot))).sort((a, b) => String(a).localeCompare(String(b)));
       const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
       const tbody = document.getElementById('full-schedule-table-body');
+
+      if (timeSlots.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 text-xs">Belum ada data jadwal. Tunggu sinkronisasi...</td></tr>`;
+        return;
+      }
 
       tbody.innerHTML = timeSlots.map(slot => `
         <tr class="border-b border-slate-100 hover:bg-slate-50">
           <td class="p-3 font-semibold text-slate-500 whitespace-nowrap">${slot}</td>
           ${days.map(day => {
             const match = scheduleList.find(s => s.day === day && s.timeSlot === slot);
-            return match 
+            return match
               ? `<td class="p-2 text-center">
                   <div class="p-2 rounded-lg ${getBadgeStyle(match.category)} font-bold text-center flex items-center justify-between gap-1">
                     <span class="flex-1">${match.activity}</span>
@@ -556,38 +850,7 @@
       lucide.createIcons();
     }
 
-    // FIRESTORE REAL-TIME LISTENERS
-    const scheduleColRef = collection(db, "users", "bu_hanifah", "schedule");
-    const tasksColRef = collection(db, "users", "bu_hanifah", "tasks");
-
-    onSnapshot(scheduleColRef, (snapshot) => {
-      document.getElementById('sync-status').textContent = "Terhubung Live ⚡";
-      document.getElementById('sync-status').className = "bg-emerald-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold";
-
-      if (!snapshot.empty) {
-        scheduleList = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-      }
-      renderTodaySchedule();
-      renderFullScheduleTable();
-    }, (error) => {
-      console.warn("Firestore schedule offline:", error);
-      document.getElementById('sync-status').textContent = "Mode Lokal / Standalone";
-      document.getElementById('sync-status').className = "bg-amber-500/90 text-white px-2.5 py-1 rounded-md text-xs font-bold";
-      renderTodaySchedule();
-      renderFullScheduleTable();
-    });
-
-    onSnapshot(tasksColRef, (snapshot) => {
-      if (!snapshot.empty) {
-        tasks = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-      }
-      renderTasks();
-    }, (error) => {
-      console.warn("Firestore tasks offline:", error);
-      renderTasks();
-    });
-
-    // MODAL EDIT JADWAL
+    // ---------- MODAL JADWAL ----------
     const modal = document.getElementById('schedule-modal');
     const modalTitle = document.getElementById('modal-title');
     const form = document.getElementById('schedule-form');
@@ -596,13 +859,11 @@
     window.openEditModal = function(id) {
       const item = scheduleList.find(s => s.id === id);
       if (!item) return;
-
       document.getElementById('edit-schedule-id').value = item.id;
       document.getElementById('edit-day').value = item.day;
       document.getElementById('edit-timeslot').value = item.timeSlot;
       document.getElementById('edit-activity').value = item.activity;
       document.getElementById('edit-category').value = item.category;
-
       modalTitle.textContent = "Edit Slot Jadwal";
       deleteBtn.classList.remove('hidden');
       modal.classList.remove('hidden');
@@ -614,7 +875,6 @@
       document.getElementById('edit-timeslot').value = slot;
       document.getElementById('edit-activity').value = '';
       document.getElementById('edit-category').value = 'kelas';
-
       modalTitle.textContent = "Tambah Slot Jadwal";
       deleteBtn.classList.add('hidden');
       modal.classList.remove('hidden');
@@ -623,7 +883,6 @@
     document.getElementById('btn-add-schedule').addEventListener('click', () => {
       openAddModalForSlot('Senin', '08.35–09.10');
     });
-
     document.getElementById('close-modal-btn').addEventListener('click', () => modal.classList.add('hidden'));
     document.getElementById('btn-cancel-modal').addEventListener('click', () => modal.classList.add('hidden'));
 
@@ -631,38 +890,57 @@
       e.preventDefault();
       const id = document.getElementById('edit-schedule-id').value;
       const day = document.getElementById('edit-day').value;
-      const timeSlot = document.getElementById('edit-timeslot').value;
-      const activity = document.getElementById('edit-activity').value;
+      const timeSlot = document.getElementById('edit-timeslot').value.trim();
+      const activity = document.getElementById('edit-activity').value.trim();
       const category = document.getElementById('edit-category').value;
-      const payload = { day, timeSlot, activity, category };
+      if (!timeSlot || !activity) return;
 
-      if (id) {
-        scheduleList = scheduleList.map(s => s.id === id ? { id, ...payload } : s);
-        try { await updateDoc(doc(db, "users", "bu_hanifah", "schedule", id), payload); } catch (e) {}
-      } else {
-        const newId = Date.now().toString();
-        scheduleList.push({ id: newId, ...payload });
-        try { await setDoc(doc(db, "users", "bu_hanifah", "schedule", newId), payload); } catch (e) {}
+      const payload = { day, timeSlot, activity, category, updatedAt: serverTimestamp() };
+
+      try {
+        if (id) {
+          // Optimistic local update (onSnapshot akan konfirmasi)
+          scheduleList = scheduleList.map(s => s.id === id ? { id, day, timeSlot, activity, category } : s);
+          renderTodaySchedule();
+          renderFullScheduleTable();
+          await updateDoc(doc(db, "users", USER_ID, "schedule", id), payload);
+          toast('Jadwal diperbarui — sinkron ke semua device ⚡');
+        } else {
+          const newId = Date.now().toString();
+          scheduleList.push({ id: newId, day, timeSlot, activity, category });
+          renderTodaySchedule();
+          renderFullScheduleTable();
+          await setDoc(doc(db, "users", USER_ID, "schedule", newId), payload);
+          toast('Slot jadwal ditambahkan ⚡');
+        }
+        modal.classList.add('hidden');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal menyimpan ke Firebase. Cek koneksi / Rules.', true);
+        setSyncStatus(false, 'Gagal menulis');
       }
-
-      modal.classList.add('hidden');
-      renderTodaySchedule();
-      renderFullScheduleTable();
     });
 
     deleteBtn.addEventListener('click', async () => {
       const id = document.getElementById('edit-schedule-id').value;
       if (!id) return;
-      scheduleList = scheduleList.filter(s => s.id !== id);
-      try { await deleteDoc(doc(db, "users", "bu_hanifah", "schedule", id)); } catch (e) {}
-      modal.classList.add('hidden');
-      renderTodaySchedule();
-      renderFullScheduleTable();
+      if (!confirm('Yakin hapus slot jadwal ini?')) return;
+      try {
+        scheduleList = scheduleList.filter(s => s.id !== id);
+        renderTodaySchedule();
+        renderFullScheduleTable();
+        await deleteDoc(doc(db, "users", USER_ID, "schedule", id));
+        modal.classList.add('hidden');
+        toast('Slot dihapus ⚡');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal menghapus di Firebase.', true);
+      }
     });
 
-    // TASK MANAGER LOGIC
+    // ---------- TASK MANAGER ----------
     const taskModal = document.getElementById('task-modal');
-    
+
     function renderTasks() {
       document.getElementById('task-count-badge').textContent = tasks.filter(t => !t.completed).length;
 
@@ -675,7 +953,7 @@
         el.innerHTML = tasks.map(t => `
           <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
             <div class="flex items-center gap-2.5">
-              <input type="checkbox" ${t.completed ? 'checked' : ''} 
+              <input type="checkbox" ${t.completed ? 'checked' : ''}
                 onchange="toggleTask('${t.id}')"
                 class="rounded text-pastel-primary focus:ring-0 w-4 h-4 cursor-pointer">
               <span class="text-xs font-semibold ${t.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${t.title}</span>
@@ -701,15 +979,28 @@
       const task = tasks.find(t => t.id === id);
       if (!task) return;
       const newStatus = !task.completed;
+      // Optimistic
       tasks = tasks.map(t => t.id === id ? { ...t, completed: newStatus } : t);
-      try { await updateDoc(doc(db, "users", "bu_hanifah", "tasks", id), { completed: newStatus }); } catch (e) {}
       renderTasks();
+      try {
+        await updateDoc(doc(db, "users", USER_ID, "tasks", id), { completed: newStatus, updatedAt: serverTimestamp() });
+      } catch (err) {
+        console.error(err);
+        toast('Gagal update tugas di cloud.', true);
+      }
     };
 
     window.deleteTask = async function(id) {
+      if (!confirm('Hapus tugas ini?')) return;
       tasks = tasks.filter(t => t.id !== id);
-      try { await deleteDoc(doc(db, "users", "bu_hanifah", "tasks", id)); } catch (e) {}
       renderTasks();
+      try {
+        await deleteDoc(doc(db, "users", USER_ID, "tasks", id));
+        toast('Tugas dihapus ⚡');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal hapus di cloud.', true);
+      }
     };
 
     window.openEditTaskModal = function(id) {
@@ -729,33 +1020,111 @@
       const title = document.getElementById('edit-task-title').value.trim();
       if (!title) return;
       tasks = tasks.map(t => t.id === id ? { ...t, title } : t);
-      try { await updateDoc(doc(db, "users", "bu_hanifah", "tasks", id), { title }); } catch (e) {}
-      taskModal.classList.add('hidden');
       renderTasks();
+      try {
+        await updateDoc(doc(db, "users", USER_ID, "tasks", id), { title, updatedAt: serverTimestamp() });
+        taskModal.classList.add('hidden');
+        toast('Tugas diperbarui ⚡');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal simpan ke cloud.', true);
+      }
     });
 
     async function addTask(inputEl) {
       const title = inputEl.value.trim();
       if (!title) return;
       const newId = Date.now().toString();
-      const payload = { title, completed: false };
-      tasks.push({ id: newId, ...payload });
-      try { await setDoc(doc(db, "users", "bu_hanifah", "tasks", newId), payload); } catch (e) {}
-      inputEl.value = '';
+      const payload = { title, completed: false, updatedAt: serverTimestamp() };
+      tasks.push({ id: newId, title, completed: false });
       renderTasks();
+      inputEl.value = '';
+      try {
+        await setDoc(doc(db, "users", USER_ID, "tasks", newId), payload);
+        toast('Tugas ditambahkan ⚡');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal simpan tugas ke cloud.', true);
+      }
     }
 
     document.getElementById('add-task-form-dash').addEventListener('submit', (e) => {
       e.preventDefault();
       addTask(document.getElementById('task-input-dash'));
     });
-
     document.getElementById('add-task-form-main').addEventListener('submit', (e) => {
       e.preventDefault();
       addTask(document.getElementById('task-input-main'));
     });
 
-    // TEACHING PLANNER
+    // ---------- QUICK NOTES (Firestore) ----------
+    function renderNotes() {
+      const grid = document.getElementById('notes-grid');
+      if (!grid) return;
+      if (notes.length === 0) {
+        grid.innerHTML = `<p class="text-xs text-slate-400 col-span-full text-center py-8">Belum ada catatan. Klik "Catatan Baru".</p>`;
+        return;
+      }
+      const colorMap = {
+        yellow: 'bg-pastel-yellow',
+        pink: 'bg-pastel-pink',
+        lavender: 'bg-pastel-lavender',
+        green: 'bg-pastel-green'
+      };
+      grid.innerHTML = notes.map(n => `
+        <div class="${colorMap[n.color] || 'bg-pastel-yellow'} p-4 rounded-xl border border-black/5 space-y-2 relative group">
+          <button type="button" onclick="deleteNote('${n.id}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 text-xs">✕</button>
+          <input type="text" value="${(n.title || '').replace(/"/g, '&quot;')}" data-id="${n.id}" data-field="title"
+            onchange="saveNoteField(this)" class="bg-transparent font-bold text-xs text-slate-800 outline-none w-full pr-6">
+          <textarea data-id="${n.id}" data-field="content" onchange="saveNoteField(this)"
+            class="bg-transparent text-xs font-medium text-slate-700 outline-none w-full resize-none h-20">${n.content || ''}</textarea>
+        </div>
+      `).join('');
+    }
+
+    window.saveNoteField = async function(el) {
+      const id = el.getAttribute('data-id');
+      const field = el.getAttribute('data-field');
+      const value = el.value;
+      notes = notes.map(n => n.id === id ? { ...n, [field]: value } : n);
+      try {
+        await updateDoc(doc(db, "users", USER_ID, "notes", id), { [field]: value, updatedAt: serverTimestamp() });
+      } catch (err) {
+        console.error(err);
+        toast('Gagal simpan catatan.', true);
+      }
+    };
+
+    window.deleteNote = async function(id) {
+      if (!confirm('Hapus catatan ini?')) return;
+      notes = notes.filter(n => n.id !== id);
+      renderNotes();
+      try {
+        await deleteDoc(doc(db, "users", USER_ID, "notes", id));
+        toast('Catatan dihapus ⚡');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal hapus catatan.', true);
+      }
+    };
+
+    document.getElementById('btn-add-note').addEventListener('click', async () => {
+      const colors = ['yellow', 'pink', 'lavender', 'green'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const newId = Date.now().toString();
+      const payload = { title: '', content: '', color, updatedAt: serverTimestamp() };
+      notes.unshift({ id: newId, ...payload });
+      renderNotes();
+      try {
+        await setDoc(doc(db, "users", USER_ID, "notes", newId), payload);
+        toast('Catatan baru ⚡');
+      } catch (err) {
+        console.error(err);
+        toast('Gagal simpan catatan ke cloud.', true);
+      }
+    });
+
+    // ---------- TEACHING PLANNER (lokal dulu) ----------
     function renderPlanners() {
       const container = document.getElementById('planner-list');
       container.innerHTML = planners.map(p => `
@@ -779,12 +1148,10 @@
       planners = planners.map(p => p.id === id ? { ...p, title } : p);
       renderPlanners();
     };
-
     window.deletePlanner = function(id) {
       planners = planners.filter(p => p.id !== id);
       renderPlanners();
     };
-
     document.getElementById('btn-add-planner').addEventListener('click', () => {
       const title = prompt("Masukkan Judul RPP / Modul Ajar:");
       if (!title) return;
@@ -792,7 +1159,7 @@
       renderPlanners();
     });
 
-    // DIGITAL LIBRARY
+    // ---------- DIGITAL LIBRARY (lokal dulu) ----------
     function renderLibrary() {
       const container = document.getElementById('library-list');
       container.innerHTML = books.map(b => `
@@ -809,17 +1176,14 @@
         </div>
       `).join('');
     }
-
     window.toggleBookStatus = function(id) {
       books = books.map(b => b.id === id ? { ...b, status: b.status === 'Tersedia' ? 'Dipinjam' : 'Tersedia' } : b);
       renderLibrary();
     };
-
     window.deleteBook = function(id) {
       books = books.filter(b => b.id !== id);
       renderLibrary();
     };
-
     document.getElementById('btn-add-book').addEventListener('click', () => {
       const title = prompt("Judul Buku Baru:");
       if (!title) return;
@@ -827,14 +1191,13 @@
       renderLibrary();
     });
 
-    // HABIT TRACKER
+    // ---------- HABIT TRACKER ----------
     const habits = [
       { title: "Menyiapkan Modul Ajar Pekanan", done: true },
       { title: "Dzikir Pagi Bersama Siswa", done: true },
       { title: "Pemeriksaan Buku Tugas Bahasa Indonesia", done: false },
       { title: "Pencatatan Peminjaman Buku Perpustakaan", done: false }
     ];
-
     document.getElementById('habit-list').innerHTML = habits.map(h => `
       <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-white">
         <span class="text-xs font-semibold text-slate-700">${h.title}</span>
@@ -844,47 +1207,31 @@
       </div>
     `).join('');
 
-    // STICKY NOTES
-    document.getElementById('btn-add-note').addEventListener('click', () => {
-      const grid = document.getElementById('notes-grid');
-      const colors = ['bg-pastel-yellow', 'bg-pastel-pink', 'bg-pastel-lavender', 'bg-pastel-green'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      
-      const noteHtml = `
-        <div class="${color} p-4 rounded-xl border border-black/5 space-y-2">
-          <input type="text" placeholder="Judul Catatan..." class="bg-transparent font-bold text-xs text-slate-800 outline-none w-full placeholder:text-slate-500">
-          <textarea placeholder="Tulis rincian catatan di sini..." class="bg-transparent text-xs font-medium text-slate-700 outline-none w-full resize-none h-20 placeholder:text-slate-400"></textarea>
-        </div>
-      `;
-      grid.insertAdjacentHTML('beforeend', noteHtml);
-    });
-
-    // MOBILE SIDEBAR TOGGLE
+    // ---------- MOBILE SIDEBAR ----------
     const sidebar = document.getElementById('sidebar');
     const backdrop = document.getElementById('backdrop');
-
     document.getElementById('mobile-menu-btn').addEventListener('click', () => {
       sidebar.classList.remove('-translate-x-full');
       backdrop.classList.remove('hidden');
     });
-
     document.getElementById('close-sidebar-btn').addEventListener('click', () => {
       sidebar.classList.add('-translate-x-full');
       backdrop.classList.add('hidden');
     });
-
     backdrop.addEventListener('click', () => {
       sidebar.classList.add('-translate-x-full');
       backdrop.classList.add('hidden');
     });
 
-    // INIT RENDER
+    // INIT (render kosong dulu; onSnapshot akan isi data)
     renderTodaySchedule();
     renderFullScheduleTable();
     renderTasks();
     renderPlanners();
     renderLibrary();
+    renderNotes();
     lucide.createIcons();
   </script>
+
 </body>
 </html>
