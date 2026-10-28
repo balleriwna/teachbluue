@@ -354,6 +354,7 @@
             <option value="tahfidz">Tahfidz (Ungu Pastel)</option>
             <option value="kegiatan_khusus">Pramuka / Ekskul / Literasi (Hijau Pastel)</option>
             <option value="istirahat">Istirahat / Ishoma / Pulang (Abu-abu)</option>
+            <option value="kosong">Kosong (Garis putus)</option>
           </select>
         </div>
         <div class="flex justify-end gap-2 pt-3">
@@ -536,67 +537,84 @@
     const notesRef = ref(db, `${basePath}/notes`);
 
     // MASTER DATA INITIAL JADWAL
-    const INITIAL_SCHEDULE = [
-      { id: '1', day: "Senin", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
-      { id: '2', day: "Senin", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
-      { id: '3', day: "Senin", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
-      { id: '4', day: "Senin", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
-      { id: '5', day: "Senin", timeSlot: "09.45–10.20", activity: "PERPUS (5)", category: "perpus" },
-      { id: '6', day: "Senin", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
-      { id: '7', day: "Senin", timeSlot: "10.35–11.10", activity: "5", category: "kelas" },
-      { id: '8', day: "Senin", timeSlot: "11.10–11.45", activity: "5 & PERPUS (2B)", category: "perpus" },
-      { id: '9', day: "Senin", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
-      { id: '10', day: "Senin", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
-      { id: '11', day: "Senin", timeSlot: "13.00–13.35", activity: "6", category: "kelas" },
-      { id: '12', day: "Senin", timeSlot: "13.35–14.00", activity: "PERPUS (3C)", category: "perpus" },
-      { id: '13', day: "Senin", timeSlot: "14.00–14.30", activity: "MUROJAAH", category: "ibadah" },
-      { id: '14', day: "Selasa", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
-      { id: '15', day: "Selasa", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
-      { id: '16', day: "Selasa", timeSlot: "08.35–09.10", activity: "4A & PERPUS (2A)", category: "perpus" },
-      { id: '17', day: "Selasa", timeSlot: "09.10–09.45", activity: "4A", category: "kelas" },
-      { id: '18', day: "Selasa", timeSlot: "09.45–10.20", activity: "PERPUS (4A)", category: "perpus" },
-      { id: '19', day: "Selasa", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
-      { id: '20', day: "Selasa", timeSlot: "10.35–11.10", activity: "5", category: "kelas" },
-      { id: '21', day: "Selasa", timeSlot: "11.10–11.45", activity: "5 & PERPUS (1A)", category: "perpus" },
-      { id: '22', day: "Selasa", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
-      { id: '23', day: "Selasa", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
-      { id: '24', day: "Selasa", timeSlot: "13.00–13.35", activity: "6 & PERPUS (2C)", category: "perpus" },
-      { id: '25', day: "Selasa", timeSlot: "13.35–14.00", activity: "6", category: "kelas" },
-      { id: '26', day: "Selasa", timeSlot: "14.00–14.30", activity: "MUROJAAH", category: "ibadah" },
-      { id: '27', day: "Rabu", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
-      { id: '28', day: "Rabu", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
-      { id: '29', day: "Rabu", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
-      { id: '30', day: "Rabu", timeSlot: "11.10–11.45", activity: "4A", category: "kelas" },
-      { id: '31', day: "Rabu", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
-      { id: '32', day: "Rabu", timeSlot: "12.25–13.00", activity: "4A", category: "kelas" },
-      { id: '33', day: "Rabu", timeSlot: "13.00–13.35", activity: "PERPUS (4B)", category: "perpus" },
-      { id: '34', day: "Rabu", timeSlot: "13.35–14.00", activity: "4B", category: "kelas" },
-      { id: '35', day: "Rabu", timeSlot: "14.00–14.30", activity: "MUROJAAH", category: "ibadah" },
-      { id: '36', day: "Kamis", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
-      { id: '37', day: "Kamis", timeSlot: "07.35–08.35", activity: "PRAMUKA", category: "kegiatan_khusus" },
-      { id: '38', day: "Kamis", timeSlot: "08.35–09.10", activity: "4A & PERPUS (3B)", category: "perpus" },
-      { id: '39', day: "Kamis", timeSlot: "09.45–10.20", activity: "TKA LITERASI", category: "kegiatan_khusus" },
-      { id: '40', day: "Kamis", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
-      { id: '41', day: "Kamis", timeSlot: "10.35–11.10", activity: "SENI (4A)", category: "kelas" },
-      { id: '42', day: "Kamis", timeSlot: "11.10–11.45", activity: "SENI (4A)", category: "kelas" },
-      { id: '43', day: "Kamis", timeSlot: "11.45–12.25", activity: "ISHOMA", category: "istirahat" },
-      { id: '44', day: "Kamis", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
-      { id: '45', day: "Kamis", timeSlot: "13.00–13.35", activity: "6 & PERPUS (1B)", category: "perpus" },
-      { id: '46', day: "Kamis", timeSlot: "14.00–14.30", activity: "TAHFIDZ", category: "tahfidz" },
-      { id: '47', day: "Jumat", timeSlot: "07.00–07.35", activity: "IKRAR - DHUHA - DZIKIR PAGI", category: "ibadah" },
-      { id: '48', day: "Jumat", timeSlot: "07.35–08.35", activity: "TAHFIDZ", category: "tahfidz" },
-      { id: '49', day: "Jumat", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
-      { id: '50', day: "Jumat", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
-      { id: '51', day: "Jumat", timeSlot: "09.45–10.20", activity: "5 & PERPUS (3A)", category: "perpus" },
-      { id: '52', day: "Jumat", timeSlot: "10.20–10.35", activity: "ISTIRAHAT 1", category: "istirahat" },
-      { id: '53', day: "Jumat", timeSlot: "10.35–11.10", activity: "5 & PERPUS (1C)", category: "perpus" },
-      { id: '54', day: "Jumat", timeSlot: "11.10–12.25", activity: "ISHOMA", category: "istirahat" },
-      { id: '55', day: "Jumat", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
-      { id: '56', day: "Jumat", timeSlot: "13.00–14.00", activity: "EKSKUL / TKA LITERASI", category: "kegiatan_khusus" },
-      { id: '57', day: "Jumat", timeSlot: "14.00–14.30", activity: "PULANG: 14.30 WIB", category: "istirahat" }
+        const INITIAL_SCHEDULE = [
+      // ===== SENIN =====
+      { id: 'sen-01', day: "Senin", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'sen-02', day: "Senin", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
+      { id: 'sen-03', day: "Senin", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
+      { id: 'sen-04', day: "Senin", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
+      { id: 'sen-05', day: "Senin", timeSlot: "09.45–10.20", activity: "Perpus (5)", category: "perpus" },
+      { id: 'sen-06', day: "Senin", timeSlot: "10.20–10.35", activity: "Istirahat 1", category: "istirahat" },
+      { id: 'sen-07', day: "Senin", timeSlot: "10.35–11.10", activity: "5", category: "kelas" },
+      { id: 'sen-08', day: "Senin", timeSlot: "11.10–11.45", activity: "5 & Perpus (2B)", category: "perpus" },
+      { id: 'sen-09', day: "Senin", timeSlot: "11.45–12.25", activity: "Ishoma", category: "istirahat" },
+      { id: 'sen-10', day: "Senin", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: 'sen-11', day: "Senin", timeSlot: "13.00–13.35", activity: "6", category: "kelas" },
+      { id: 'sen-12', day: "Senin", timeSlot: "13.35–14.00", activity: "Perpus (3C)", category: "perpus" },
+      { id: 'sen-13', day: "Senin", timeSlot: "14.00–14.30", activity: "Murojaah", category: "ibadah" },
+      { id: 'sen-14', day: "Senin", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      // ===== SELASA =====
+      { id: 'sel-01', day: "Selasa", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'sel-02', day: "Selasa", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
+      { id: 'sel-03', day: "Selasa", timeSlot: "08.35–09.10", activity: "4A & Perpus (2A)", category: "perpus" },
+      { id: 'sel-04', day: "Selasa", timeSlot: "09.10–09.45", activity: "4A", category: "kelas" },
+      { id: 'sel-05', day: "Selasa", timeSlot: "09.45–10.20", activity: "Perpus (4A)", category: "perpus" },
+      { id: 'sel-06', day: "Selasa", timeSlot: "10.20–10.35", activity: "Istirahat 1", category: "istirahat" },
+      { id: 'sel-07', day: "Selasa", timeSlot: "10.35–11.10", activity: "5", category: "kelas" },
+      { id: 'sel-08', day: "Selasa", timeSlot: "11.10–11.45", activity: "5 & Perpus (1A)", category: "perpus" },
+      { id: 'sel-09', day: "Selasa", timeSlot: "11.45–12.25", activity: "Ishoma", category: "istirahat" },
+      { id: 'sel-10', day: "Selasa", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: 'sel-11', day: "Selasa", timeSlot: "13.00–13.35", activity: "6 & Perpus (2C)", category: "perpus" },
+      { id: 'sel-12', day: "Selasa", timeSlot: "13.35–14.00", activity: "6", category: "kelas" },
+      { id: 'sel-13', day: "Selasa", timeSlot: "14.00–14.30", activity: "Murojaah", category: "ibadah" },
+      { id: 'sel-14', day: "Selasa", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      // ===== RABU =====
+      { id: 'rab-01', day: "Rabu", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'rab-02', day: "Rabu", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
+      { id: 'rab-03', day: "Rabu", timeSlot: "08.35–09.10", activity: "Kosong", category: "kosong" },
+      { id: 'rab-04', day: "Rabu", timeSlot: "09.10–09.45", activity: "Kosong", category: "kosong" },
+      { id: 'rab-05', day: "Rabu", timeSlot: "09.45–10.20", activity: "Kosong", category: "kosong" },
+      { id: 'rab-06', day: "Rabu", timeSlot: "10.20–10.35", activity: "Istirahat 1", category: "istirahat" },
+      { id: 'rab-07', day: "Rabu", timeSlot: "10.35–11.10", activity: "Kosong", category: "kosong" },
+      { id: 'rab-08', day: "Rabu", timeSlot: "11.10–11.45", activity: "4A", category: "kelas" },
+      { id: 'rab-09', day: "Rabu", timeSlot: "11.45–12.25", activity: "Ishoma", category: "istirahat" },
+      { id: 'rab-10', day: "Rabu", timeSlot: "12.25–13.00", activity: "4A", category: "kelas" },
+      { id: 'rab-11', day: "Rabu", timeSlot: "13.00–13.35", activity: "Perpus (4B)", category: "perpus" },
+      { id: 'rab-12', day: "Rabu", timeSlot: "13.35–14.00", activity: "4B", category: "kelas" },
+      { id: 'rab-13', day: "Rabu", timeSlot: "14.00–14.30", activity: "Murojaah", category: "ibadah" },
+      { id: 'rab-14', day: "Rabu", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      // ===== KAMIS =====
+      { id: 'kam-01', day: "Kamis", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'kam-02', day: "Kamis", timeSlot: "07.35–08.35", activity: "Pramuka", category: "kegiatan_khusus" },
+      { id: 'kam-03', day: "Kamis", timeSlot: "08.35–09.10", activity: "4A & Perpus (3B)", category: "perpus" },
+      { id: 'kam-04', day: "Kamis", timeSlot: "09.10–09.45", activity: "Kosong", category: "kosong" },
+      { id: 'kam-05', day: "Kamis", timeSlot: "09.45–10.20", activity: "TKA Literasi", category: "kegiatan_khusus" },
+      { id: 'kam-06', day: "Kamis", timeSlot: "10.20–10.35", activity: "Istirahat 1", category: "istirahat" },
+      { id: 'kam-07', day: "Kamis", timeSlot: "10.35–11.10", activity: "Seni (4A)", category: "kelas" },
+      { id: 'kam-08', day: "Kamis", timeSlot: "11.10–11.45", activity: "Seni (4A)", category: "kelas" },
+      { id: 'kam-09', day: "Kamis", timeSlot: "11.45–12.25", activity: "Ishoma", category: "istirahat" },
+      { id: 'kam-10', day: "Kamis", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: 'kam-11', day: "Kamis", timeSlot: "13.00–13.35", activity: "6 & Perpus (1B)", category: "perpus" },
+      { id: 'kam-12', day: "Kamis", timeSlot: "13.35–14.00", activity: "Kosong", category: "kosong" },
+      { id: 'kam-13', day: "Kamis", timeSlot: "14.00–14.30", activity: "Tahfidz", category: "tahfidz" },
+      { id: 'kam-14', day: "Kamis", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      // ===== JUMAT =====
+      { id: 'jum-01', day: "Jumat", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'jum-02', day: "Jumat", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
+      { id: 'jum-03', day: "Jumat", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
+      { id: 'jum-04', day: "Jumat", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
+      { id: 'jum-05', day: "Jumat", timeSlot: "09.45–10.20", activity: "5 & Perpus (3A)", category: "perpus" },
+      { id: 'jum-06', day: "Jumat", timeSlot: "10.20–10.35", activity: "Istirahat 1", category: "istirahat" },
+      { id: 'jum-07', day: "Jumat", timeSlot: "10.35–11.10", activity: "5 & Perpus (1C)", category: "perpus" },
+      { id: 'jum-08', day: "Jumat", timeSlot: "11.10–11.45", activity: "Ishoma", category: "istirahat" },
+      { id: 'jum-09', day: "Jumat", timeSlot: "11.45–12.25", activity: "Ishoma", category: "istirahat" },
+      { id: 'jum-10', day: "Jumat", timeSlot: "12.25–13.00", activity: "6", category: "kelas" },
+      { id: 'jum-11', day: "Jumat", timeSlot: "13.00–13.35", activity: "Ekskul/TKA Literasi", category: "kegiatan_khusus" },
+      { id: 'jum-12', day: "Jumat", timeSlot: "13.35–14.00", activity: "Ekskul/TKA Literasi", category: "kegiatan_khusus" },
+      { id: 'jum-13', day: "Jumat", timeSlot: "14.00–14.30", activity: "Pulang: 14.30 WIB", category: "istirahat" }
     ];
 
-    const INITIAL_TASKS = [
+    const INITIAL_TASKSconst INITIAL_TASKS = [
       { id: '1', title: 'Menyiapkan Modul Pembelajaran Kelas 4B', completed: false },
       { id: '2', title: 'Koreksi Lembar Kerja Siswa Bahasa Indonesia', completed: true }
     ];
@@ -678,6 +696,12 @@
     window.__startDataSync = function() {
       if (dataSyncStarted) return;
       dataSyncStarted = true;
+      // tampilkan jadwal lokal segera
+      if (!scheduleList.length) {
+        scheduleList = [...INITIAL_SCHEDULE];
+        renderTodaySchedule();
+        renderFullScheduleTable();
+      }
       seedIfEmpty();
       attachListeners();
     };
@@ -685,18 +709,24 @@
     function attachListeners() {
       const u1 = onValue(scheduleRef, (snapshot) => {
         setSyncStatus(true, 'Terhubung Live ⚡');
-        scheduleList = objToList(snapshot.val());
+        const list = objToList(snapshot.val());
+        // Jika cloud kosong, pakai jadwal awal lokal (dan coba seed)
+        if (list.length === 0) {
+          scheduleList = [...INITIAL_SCHEDULE];
+          seedIfEmpty();
+        } else {
+          scheduleList = list;
+        }
         scheduleReady = true;
         renderTodaySchedule();
         renderFullScheduleTable();
       }, (error) => {
         console.warn('Schedule listener error:', error);
         setSyncStatus(false, 'Mode Offline / Rules');
-        if (!scheduleReady) {
-          scheduleList = [...INITIAL_SCHEDULE];
-          renderTodaySchedule();
-          renderFullScheduleTable();
-        }
+        scheduleList = [...INITIAL_SCHEDULE];
+        scheduleReady = true;
+        renderTodaySchedule();
+        renderFullScheduleTable();
       });
 
       const u2 = onValue(tasksRef, (snapshot) => {
@@ -1193,7 +1223,9 @@
       backdrop.classList.add('hidden');
     });
 
-    // INIT (render kosong dulu; onSnapshot akan isi data)
+    // INIT: tampilkan jadwal lokal dulu supaya tidak kosong
+    scheduleList = [...INITIAL_SCHEDULE];
+    tasks = [...INITIAL_TASKS];
     renderTodaySchedule();
     renderFullScheduleTable();
     renderTasks();
