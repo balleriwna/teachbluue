@@ -396,13 +396,13 @@
       getAuth, signInAnonymously, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import {
-      getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc,
-      getDocs, writeBatch, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+      getDatabase, ref, set, update, remove, onValue, get, push, child
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCQGMbFxIH1Y1LCLVM1Qwb_JREYeX2U_ds",
       authDomain: "teachberry.firebaseapp.com",
+      databaseURL: "https://teachberry-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "teachberry",
       storageBucket: "teachberry.firebasestorage.app",
       messagingSenderId: "27935164603",
@@ -410,7 +410,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
         const auth = getAuth(app);
 
@@ -529,9 +529,11 @@
       location.reload();
     });
 
-    const scheduleColRef = collection(db, "users", USER_ID, "schedule");
-    const tasksColRef = collection(db, "users", USER_ID, "tasks");
-    const notesColRef = collection(db, "users", USER_ID, "notes");
+    // Path Realtime Database: users/bu_hanifah/...
+    const basePath = `users/${USER_ID}`;
+    const scheduleRef = ref(db, `${basePath}/schedule`);
+    const tasksRef = ref(db, `${basePath}/tasks`);
+    const notesRef = ref(db, `${basePath}/notes`);
 
     // MASTER DATA INITIAL JADWAL
     const INITIAL_SCHEDULE = [
@@ -599,7 +601,6 @@
       { id: '2', title: 'Koreksi Lembar Kerja Siswa Bahasa Indonesia', completed: true }
     ];
 
-    // State lokal — SELALU di-update dari onSnapshot (sumber kebenaran = Firestore)
     let scheduleList = [];
     let tasks = [];
     let notes = [];
@@ -640,103 +641,88 @@
       setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 2800);
     }
 
-    const getBadgeStyle = (cat) => {
-      switch(cat) {
-        case 'ibadah': return 'bg-pastel-yellow text-amber-900 border border-amber-200';
-        case 'tahfidz': return 'bg-pastel-lavender text-purple-900 border border-purple-200';
-        case 'kelas': return 'bg-pastel-soft text-pastel-primary border border-pastel-sky';
-        case 'perpus': return 'bg-pastel-pink text-pink-900 border border-pink-200';
-        case 'istirahat': return 'bg-slate-100 text-slate-500 font-normal';
-        case 'kegiatan_khusus': return 'bg-pastel-green text-emerald-900 border border-emerald-200';
-        default: return 'bg-slate-100 text-slate-700';
-      }
-    };
+    function objToList(obj) {
+      if (!obj) return [];
+      return Object.keys(obj).map(id => ({ id, ...obj[id] }));
+    }
 
-    // ---------- SEED DATA KE FIRESTORE (hanya jika koleksi masih kosong) ----------
-    
+    async function seedIfEmpty() {
+      try {
+        const snap = await get(scheduleRef);
+        if (!snap.exists()) {
+          console.log('[seed] Menulis jadwal awal ke Realtime Database...');
+          const payload = {};
+          INITIAL_SCHEDULE.forEach(item => {
+            const { id, ...data } = item;
+            payload[id] = data;
+          });
+          await set(scheduleRef, payload);
+          toast('Jadwal awal tersimpan ke cloud ☁️');
+        }
+        const tsnap = await get(tasksRef);
+        if (!tsnap.exists()) {
+          const payload = {};
+          INITIAL_TASKS.forEach(item => {
+            const { id, ...data } = item;
+            payload[id] = data;
+          });
+          await set(tasksRef, payload);
+        }
+      } catch (err) {
+        console.error('[seed]', err);
+        setSyncStatus(false, 'Gagal sync — cek Rules RTDB');
+        toast('Tidak bisa menulis ke database. Cek Rules!', true);
+      }
+    }
+
     window.__startDataSync = function() {
       if (dataSyncStarted) return;
-      if (!auth.currentUser) return;
       dataSyncStarted = true;
       seedIfEmpty();
       attachListeners();
     };
 
-async function seedIfEmpty() {
-      try {
-        const schedSnap = await getDocs(scheduleColRef);
-        if (schedSnap.empty) {
-          console.log('[seed] Menulis jadwal awal ke Firestore...');
-          const batch = writeBatch(db);
-          INITIAL_SCHEDULE.forEach(item => {
-            const { id, ...data } = item;
-            batch.set(doc(scheduleColRef, id), { ...data, updatedAt: serverTimestamp() });
-          });
-          await batch.commit();
-          console.log('[seed] Jadwal awal tersimpan.');
-          toast('Jadwal awal berhasil disimpan ke cloud ☁️');
-        }
-
-        const taskSnap = await getDocs(tasksColRef);
-        if (taskSnap.empty) {
-          const batch = writeBatch(db);
-          INITIAL_TASKS.forEach(item => {
-            const { id, ...data } = item;
-            batch.set(doc(tasksColRef, id), { ...data, updatedAt: serverTimestamp() });
-          });
-          await batch.commit();
-        }
-      } catch (err) {
-        console.error('[seed] Gagal seed:', err);
-        setSyncStatus(false, 'Gagal sync — cek Rules Firestore');
-        toast('Tidak bisa menulis ke Firebase. Cek Security Rules!', true);
-      }
-    }
-
-    // ---------- REAL-TIME LISTENERS (sumber kebenaran) ----------
     function attachListeners() {
-      const u1 = onSnapshot(scheduleColRef, (snapshot) => {
-      setSyncStatus(true, 'Terhubung Live ⚡');
-      scheduleList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      scheduleReady = true;
-      renderTodaySchedule();
-      renderFullScheduleTable();
-    }, (error) => {
-      console.warn('Schedule listener error:', error);
-      setSyncStatus(false, 'Mode Offline / Rules');
-      if (!scheduleReady) {
-        scheduleList = [...INITIAL_SCHEDULE];
+      const u1 = onValue(scheduleRef, (snapshot) => {
+        setSyncStatus(true, 'Terhubung Live ⚡');
+        scheduleList = objToList(snapshot.val());
+        scheduleReady = true;
         renderTodaySchedule();
         renderFullScheduleTable();
-      }
-    });
+      }, (error) => {
+        console.warn('Schedule listener error:', error);
+        setSyncStatus(false, 'Mode Offline / Rules');
+        if (!scheduleReady) {
+          scheduleList = [...INITIAL_SCHEDULE];
+          renderTodaySchedule();
+          renderFullScheduleTable();
+        }
+      });
 
-      const u2 = onSnapshot(tasksColRef, (snapshot) => {
-      tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      tasksReady = true;
-      renderTasks();
-    }, (error) => {
-      console.warn('Tasks listener error:', error);
-      if (!tasksReady) {
-        tasks = [...INITIAL_TASKS];
+      const u2 = onValue(tasksRef, (snapshot) => {
+        tasks = objToList(snapshot.val());
+        tasksReady = true;
         renderTasks();
-      }
-    });
+      }, (error) => {
+        console.warn('Tasks listener error:', error);
+        if (!tasksReady) {
+          tasks = [...INITIAL_TASKS];
+          renderTasks();
+        }
+      });
 
-      const u3 = onSnapshot(notesColRef, (snapshot) => {
-      notes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderNotes();
-    }, (error) => {
-      console.warn('Notes listener error:', error);
-    });
+      const u3 = onValue(notesRef, (snapshot) => {
+        notes = objToList(snapshot.val());
+        renderNotes();
+      }, (error) => {
+        console.warn('Notes listener error:', error);
+      });
 
+      // onValue returns unsubscribe
       unsubscribers.push(u1, u2, u3);
     }
 
-
-    // Jalankan seed sekali saat load
-
-    // ---------- NAVIGASI TAB ----------
+// ---------- NAVIGASI TAB ----------
     window.switchTab = function(tabName) {
       document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-item').forEach(el => {
@@ -879,7 +865,7 @@ async function seedIfEmpty() {
       const category = document.getElementById('edit-category').value;
       if (!timeSlot || !activity) return;
 
-      const payload = { day, timeSlot, activity, category, updatedAt: serverTimestamp() };
+      const payload = { day, timeSlot, activity, category };
 
       try {
         if (id) {
@@ -887,14 +873,14 @@ async function seedIfEmpty() {
           scheduleList = scheduleList.map(s => s.id === id ? { id, day, timeSlot, activity, category } : s);
           renderTodaySchedule();
           renderFullScheduleTable();
-          await updateDoc(doc(db, "users", USER_ID, "schedule", id), payload);
+          await update(ref(db, `${basePath}/schedule/${id}`), { day, timeSlot, activity, category });
           toast('Jadwal diperbarui — sinkron ke semua device ⚡');
         } else {
           const newId = Date.now().toString();
           scheduleList.push({ id: newId, day, timeSlot, activity, category });
           renderTodaySchedule();
           renderFullScheduleTable();
-          await setDoc(doc(db, "users", USER_ID, "schedule", newId), payload);
+          await set(ref(db, `${basePath}/schedule/${newId}`), { day, timeSlot, activity, category });
           toast('Slot jadwal ditambahkan ⚡');
         }
         modal.classList.add('hidden');
@@ -913,7 +899,7 @@ async function seedIfEmpty() {
         scheduleList = scheduleList.filter(s => s.id !== id);
         renderTodaySchedule();
         renderFullScheduleTable();
-        await deleteDoc(doc(db, "users", USER_ID, "schedule", id));
+        await remove(ref(db, `${basePath}/schedule/${id}`));
         modal.classList.add('hidden');
         toast('Slot dihapus ⚡');
       } catch (err) {
@@ -967,7 +953,7 @@ async function seedIfEmpty() {
       tasks = tasks.map(t => t.id === id ? { ...t, completed: newStatus } : t);
       renderTasks();
       try {
-        await updateDoc(doc(db, "users", USER_ID, "tasks", id), { completed: newStatus, updatedAt: serverTimestamp() });
+        await update(ref(db, `${basePath}/tasks/${id}`), { completed: newStatus });
       } catch (err) {
         console.error(err);
         toast('Gagal update tugas di cloud.', true);
@@ -979,7 +965,7 @@ async function seedIfEmpty() {
       tasks = tasks.filter(t => t.id !== id);
       renderTasks();
       try {
-        await deleteDoc(doc(db, "users", USER_ID, "tasks", id));
+        await remove(ref(db, `${basePath}/tasks/${id}`));
         toast('Tugas dihapus ⚡');
       } catch (err) {
         console.error(err);
@@ -1006,7 +992,7 @@ async function seedIfEmpty() {
       tasks = tasks.map(t => t.id === id ? { ...t, title } : t);
       renderTasks();
       try {
-        await updateDoc(doc(db, "users", USER_ID, "tasks", id), { title, updatedAt: serverTimestamp() });
+        await update(ref(db, `${basePath}/tasks/${id}`), { title });
         taskModal.classList.add('hidden');
         toast('Tugas diperbarui ⚡');
       } catch (err) {
@@ -1019,12 +1005,12 @@ async function seedIfEmpty() {
       const title = inputEl.value.trim();
       if (!title) return;
       const newId = Date.now().toString();
-      const payload = { title, completed: false, updatedAt: serverTimestamp() };
+      const payload = { title, completed: false };
       tasks.push({ id: newId, title, completed: false });
       renderTasks();
       inputEl.value = '';
       try {
-        await setDoc(doc(db, "users", USER_ID, "tasks", newId), payload);
+        await set(ref(db, `${basePath}/tasks/${newId}`), { title, completed: false });
         toast('Tugas ditambahkan ⚡');
       } catch (err) {
         console.error(err);
@@ -1072,7 +1058,7 @@ async function seedIfEmpty() {
       const value = el.value;
       notes = notes.map(n => n.id === id ? { ...n, [field]: value } : n);
       try {
-        await updateDoc(doc(db, "users", USER_ID, "notes", id), { [field]: value, updatedAt: serverTimestamp() });
+        await update(ref(db, `${basePath}/notes/${id}`), { [field]: value });
       } catch (err) {
         console.error(err);
         toast('Gagal simpan catatan.', true);
@@ -1084,7 +1070,7 @@ async function seedIfEmpty() {
       notes = notes.filter(n => n.id !== id);
       renderNotes();
       try {
-        await deleteDoc(doc(db, "users", USER_ID, "notes", id));
+        await remove(ref(db, `${basePath}/notes/${id}`));
         toast('Catatan dihapus ⚡');
       } catch (err) {
         console.error(err);
@@ -1096,11 +1082,11 @@ async function seedIfEmpty() {
       const colors = ['yellow', 'pink', 'lavender', 'green'];
       const color = colors[Math.floor(Math.random() * colors.length)];
       const newId = Date.now().toString();
-      const payload = { title: '', content: '', color, updatedAt: serverTimestamp() };
+      const payload = { title: '', content: '', color };
       notes.unshift({ id: newId, ...payload });
       renderNotes();
       try {
-        await setDoc(doc(db, "users", USER_ID, "notes", newId), payload);
+        await set(ref(db, `${basePath}/notes/${newId}`), { title: '', content: '', color });
         toast('Catatan baru ⚡');
       } catch (err) {
         console.error(err);
