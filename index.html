@@ -49,36 +49,26 @@
 </head>
 <body class="bg-pastel-bg font-sans text-slate-800 min-h-screen flex flex-col md:flex-row antialiased w-full overflow-x-hidden">
 
-  <!-- LOGIN GATE (Firebase Auth) -->
+  <!-- LOGIN GATE (password only) -->
   <div id="login-screen" class="fixed inset-0 z-[100] bg-gradient-to-br from-pastel-soft via-white to-pastel-sky flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 w-full max-w-sm space-y-5">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 w-full max-w-sm space-y-6">
       <div class="text-center space-y-2">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-pastel-primary text-white flex items-center justify-center font-extrabold text-xl shadow-sm">TH</div>
         <h1 class="text-xl font-extrabold text-slate-800">Teacher Hub</h1>
         <p class="text-xs text-slate-500 font-medium">Bu Hanifah Workspace</p>
       </div>
-      <form id="login-form" class="space-y-3">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1.5">Email</label>
-          <input id="login-email" type="email" autocomplete="username" placeholder="email@contoh.com"
-            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pastel-primary font-medium" required>
-        </div>
+      <form id="login-form" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1.5">Kata Sandi</label>
-          <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••"
-            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pastel-primary font-medium" required>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi..."
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pastel-primary font-medium" required autofocus>
         </div>
         <p id="login-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2"></p>
         <button type="submit" id="btn-login" class="w-full bg-pastel-primary text-white font-bold py-3 rounded-xl text-sm hover:opacity-95 transition shadow-sm">
           Masuk 🩵
         </button>
-        <button type="button" id="btn-register" class="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-sm hover:bg-slate-200 transition">
-          Daftar akun baru
-        </button>
       </form>
-      <p class="text-[10px] text-center text-slate-400 leading-relaxed">
-        Pertama kali? Klik <b>Daftar akun baru</b> pakai email kamu + password <b>bismillah</b> (atau password lain yang kamu ingat).
-      </p>
+      <p class="text-[10px] text-center text-slate-400">Akses pribadi Bu Hanifah</p>
     </div>
   </div>
 
@@ -403,8 +393,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import {
-      getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-      signOut, onAuthStateChanged
+      getAuth, signInAnonymously, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import {
       getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc,
@@ -425,16 +414,18 @@
 
         const auth = getAuth(app);
 
-    // Data tetap di path bersama biar semua device (setelah login) lihat data yang sama
+    // Password gerbang aplikasi (bukan Firebase email)
+    const APP_PASSWORD = 'bismillah';
+    const AUTH_FLAG = 'th_unlocked_v1';
+
+    // Data bersama semua device setelah lolos password
     const USER_ID = "bu_hanifah";
 
     function showApp() {
       const screen = document.getElementById('login-screen');
       if (screen) screen.classList.add('hidden');
       const appEl = document.getElementById('app');
-      if (appEl) {
-        appEl.classList.remove('opacity-0', 'pointer-events-none');
-      }
+      if (appEl) appEl.classList.remove('opacity-0', 'pointer-events-none');
       try { lucide.createIcons(); } catch {}
     }
 
@@ -442,109 +433,102 @@
       const screen = document.getElementById('login-screen');
       if (screen) screen.classList.remove('hidden');
       const appEl = document.getElementById('app');
-      if (appEl) {
-        appEl.classList.add('opacity-0', 'pointer-events-none');
-      }
+      if (appEl) appEl.classList.add('opacity-0', 'pointer-events-none');
     }
 
     function setLoginError(msg) {
       const err = document.getElementById('login-error');
       if (!err) return;
-      if (!msg) {
-        err.classList.add('hidden');
-        err.textContent = '';
-        return;
-      }
+      if (!msg) { err.classList.add('hidden'); err.textContent = ''; return; }
       err.textContent = msg;
       err.classList.remove('hidden');
     }
 
-    function mapAuthError(code) {
-      const m = {
-        'auth/invalid-email': 'Format email tidak valid.',
-        'auth/user-not-found': 'Akun belum ada. Klik "Daftar akun baru".',
-        'auth/wrong-password': 'Kata sandi salah.',
-        'auth/invalid-credential': 'Email atau kata sandi salah.',
-        'auth/email-already-in-use': 'Email sudah terdaftar. Langsung Masuk saja.',
-        'auth/weak-password': 'Password minimal 6 karakter.',
-        'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu sebentar.',
-        'auth/network-request-failed': 'Tidak ada koneksi internet.',
-        'auth/operation-not-allowed': 'Email/Password belum diaktifkan di Firebase Console.',
-      };
-      return m[code] || ('Gagal: ' + code);
+    function isUnlocked() {
+      try { return sessionStorage.getItem(AUTH_FLAG) === '1' || localStorage.getItem(AUTH_FLAG) === '1'; }
+      catch { return false; }
     }
 
-    let authReady = false;
+    function setUnlocked() {
+      try {
+        sessionStorage.setItem(AUTH_FLAG, '1');
+        localStorage.setItem(AUTH_FLAG, '1');
+      } catch {}
+    }
+
+    function clearUnlocked() {
+      try {
+        sessionStorage.removeItem(AUTH_FLAG);
+        localStorage.removeItem(AUTH_FLAG);
+      } catch {}
+    }
+
     let unsubscribers = [];
     let dataSyncStarted = false;
 
+    // Setelah password benar → login anonim ke Firebase (supaya Rules request.auth != null jalan)
+    async function unlockWithFirebase() {
+      setUnlocked();
+      showApp();
+      try {
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.warn('Anonymous auth gagal (aktifkan Anonymous di Console):', err);
+        // Tetap buka app; sync mungkin gagal jika Rules butuh auth
+        setLoginError('');
+      }
+      if (typeof window.__startDataSync === 'function') {
+        window.__startDataSync();
+      }
+    }
+
     onAuthStateChanged(auth, (user) => {
-      authReady = true;
-      if (user) {
+      // Jika sudah pernah unlock di device ini dan Firebase masih ada session
+      if (user && isUnlocked()) {
         showApp();
-        // start data listeners only when logged in
         if (typeof window.__startDataSync === 'function') {
           window.__startDataSync();
         }
-      } else {
-        // cleanup listeners
-        unsubscribers.forEach(fn => { try { fn(); } catch {} });
-        unsubscribers = [];
-        dataSyncStarted = false;
-        showLogin();
       }
     });
 
-    async function doLogin(e) {
+    // Saat load: kalau sudah unlock sebelumnya, langsung coba masuk
+    if (isUnlocked()) {
+      unlockWithFirebase();
+    } else {
+      showLogin();
+    }
+
+    document.getElementById('login-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = (document.getElementById('login-email')?.value || '').trim();
-      const password = document.getElementById('login-password')?.value || '';
+      const pass = (document.getElementById('login-password')?.value || '').trim();
       const btn = document.getElementById('btn-login');
+      if (pass !== APP_PASSWORD) {
+        setLoginError('Kata sandi salah. Coba lagi ya.');
+        const inp = document.getElementById('login-password');
+        if (inp) { inp.value = ''; inp.focus(); }
+        return;
+      }
+      setLoginError('');
       if (btn) { btn.disabled = true; btn.textContent = 'Sebentar...'; }
-      setLoginError('');
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (err) {
-        console.error(err);
-        setLoginError(mapAuthError(err.code));
-      }
+      await unlockWithFirebase();
       if (btn) { btn.disabled = false; btn.textContent = 'Masuk 🩵'; }
-    }
-
-    async function doRegister() {
-      const email = (document.getElementById('login-email')?.value || '').trim();
-      const password = document.getElementById('login-password')?.value || '';
-      if (!email || !password) {
-        setLoginError('Isi email dan password dulu.');
-        return;
-      }
-      if (password.length < 6) {
-        setLoginError('Password minimal 6 karakter.');
-        return;
-      }
-      const btn = document.getElementById('btn-register');
-      if (btn) { btn.disabled = true; btn.textContent = 'Mendaftar...'; }
-      setLoginError('');
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        setLoginError('');
-      } catch (err) {
-        console.error(err);
-        setLoginError(mapAuthError(err.code));
-      }
-      if (btn) { btn.disabled = false; btn.textContent = 'Daftar akun baru'; }
-    }
-
-    document.getElementById('login-form')?.addEventListener('submit', doLogin);
-    document.getElementById('btn-register')?.addEventListener('click', doRegister);
+      const inp = document.getElementById('login-password');
+      if (inp) inp.value = '';
+    });
 
     document.getElementById('btn-logout')?.addEventListener('click', async () => {
       if (!confirm('Yakin ingin keluar?')) return;
+      clearUnlocked();
+      dataSyncStarted = false;
+      unsubscribers.forEach(fn => { try { fn(); } catch {} });
+      unsubscribers = [];
       try { await signOut(auth); } catch {}
+      location.reload();
     });
 
-    // Single shared workspace path (semua device baca/tulis ke sini)
-    
     const scheduleColRef = collection(db, "users", USER_ID, "schedule");
     const tasksColRef = collection(db, "users", USER_ID, "tasks");
     const notesColRef = collection(db, "users", USER_ID, "notes");
