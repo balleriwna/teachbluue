@@ -563,9 +563,9 @@
     const notesRef = ref(db, `${basePath}/notes`);
 
     // MASTER DATA INITIAL JADWAL
-        const INITIAL_SCHEDULE = [
+            const INITIAL_SCHEDULE = [
       // ===== SENIN =====
-      { id: 'sen-01', day: "Senin", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'sen-01', day: "Senin", timeSlot: "07.00–07.35", activity: "Ikrar - Dhuha - Dzikir Pagi", category: "ibadah" },
       { id: 'sen-02', day: "Senin", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
       { id: 'sen-03', day: "Senin", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
       { id: 'sen-04', day: "Senin", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
@@ -578,9 +578,9 @@
       { id: 'sen-11', day: "Senin", timeSlot: "13.00–13.35", activity: "6", category: "kelas" },
       { id: 'sen-12', day: "Senin", timeSlot: "13.35–14.00", activity: "Perpus (3C)", category: "perpus" },
       { id: 'sen-13', day: "Senin", timeSlot: "14.00–14.30", activity: "Murojaah", category: "ibadah" },
-      { id: 'sen-14', day: "Senin", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      { id: 'sen-14', day: "Senin", timeSlot: "14.30", activity: "Pulang: 14.30 WIB", category: "istirahat" },
       // ===== SELASA =====
-      { id: 'sel-01', day: "Selasa", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'sel-01', day: "Selasa", timeSlot: "07.00–07.35", activity: "Ikrar - Dhuha - Dzikir Pagi", category: "ibadah" },
       { id: 'sel-02', day: "Selasa", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
       { id: 'sel-03', day: "Selasa", timeSlot: "08.35–09.10", activity: "4A & Perpus (2A)", category: "perpus" },
       { id: 'sel-04', day: "Selasa", timeSlot: "09.10–09.45", activity: "4A", category: "kelas" },
@@ -593,9 +593,9 @@
       { id: 'sel-11', day: "Selasa", timeSlot: "13.00–13.35", activity: "6 & Perpus (2C)", category: "perpus" },
       { id: 'sel-12', day: "Selasa", timeSlot: "13.35–14.00", activity: "6", category: "kelas" },
       { id: 'sel-13', day: "Selasa", timeSlot: "14.00–14.30", activity: "Murojaah", category: "ibadah" },
-      { id: 'sel-14', day: "Selasa", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      { id: 'sel-14', day: "Selasa", timeSlot: "14.30", activity: "Pulang: 14.30 WIB", category: "istirahat" },
       // ===== RABU =====
-      { id: 'rab-01', day: "Rabu", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'rab-01', day: "Rabu", timeSlot: "07.00–07.35", activity: "Ikrar - Dhuha - Dzikir Pagi", category: "ibadah" },
       { id: 'rab-02', day: "Rabu", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
       { id: 'rab-03', day: "Rabu", timeSlot: "08.35–09.10", activity: "Kosong", category: "kosong" },
       { id: 'rab-04', day: "Rabu", timeSlot: "09.10–09.45", activity: "Kosong", category: "kosong" },
@@ -608,9 +608,9 @@
       { id: 'rab-11', day: "Rabu", timeSlot: "13.00–13.35", activity: "Perpus (4B)", category: "perpus" },
       { id: 'rab-12', day: "Rabu", timeSlot: "13.35–14.00", activity: "4B", category: "kelas" },
       { id: 'rab-13', day: "Rabu", timeSlot: "14.00–14.30", activity: "Murojaah", category: "ibadah" },
-      { id: 'rab-14', day: "Rabu", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      { id: 'rab-14', day: "Rabu", timeSlot: "14.30", activity: "Pulang: 14.30 WIB", category: "istirahat" },
       // ===== KAMIS =====
-      { id: 'kam-01', day: "Kamis", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'kam-01', day: "Kamis", timeSlot: "07.00–07.35", activity: "Ikrar - Dhuha - Dzikir Pagi", category: "ibadah" },
       { id: 'kam-02', day: "Kamis", timeSlot: "07.35–08.35", activity: "Pramuka", category: "kegiatan_khusus" },
       { id: 'kam-03', day: "Kamis", timeSlot: "08.35–09.10", activity: "4A & Perpus (3B)", category: "perpus" },
       { id: 'kam-04', day: "Kamis", timeSlot: "09.10–09.45", activity: "Kosong", category: "kosong" },
@@ -623,9 +623,9 @@
       { id: 'kam-11', day: "Kamis", timeSlot: "13.00–13.35", activity: "6 & Perpus (1B)", category: "perpus" },
       { id: 'kam-12', day: "Kamis", timeSlot: "13.35–14.00", activity: "Kosong", category: "kosong" },
       { id: 'kam-13', day: "Kamis", timeSlot: "14.00–14.30", activity: "Tahfidz", category: "tahfidz" },
-      { id: 'kam-14', day: "Kamis", timeSlot: "14.30", activity: "Pulang", category: "istirahat" },
+      { id: 'kam-14', day: "Kamis", timeSlot: "14.30", activity: "Pulang: 14.30 WIB", category: "istirahat" },
       // ===== JUMAT =====
-      { id: 'jum-01', day: "Jumat", timeSlot: "07.00–07.35", activity: "Ikrar, Dhuha, Dzikir Pagi", category: "ibadah" },
+      { id: 'jum-01', day: "Jumat", timeSlot: "07.00–07.35", activity: "Ikrar - Dhuha - Dzikir Pagi", category: "ibadah" },
       { id: 'jum-02', day: "Jumat", timeSlot: "07.35–08.35", activity: "Tahfidz", category: "tahfidz" },
       { id: 'jum-03', day: "Jumat", timeSlot: "08.35–09.10", activity: "4B", category: "kelas" },
       { id: 'jum-04', day: "Jumat", timeSlot: "09.10–09.45", activity: "4B", category: "kelas" },
@@ -693,15 +693,19 @@
     async function seedIfEmpty() {
       try {
         const snap = await get(scheduleRef);
-        if (!snap.exists()) {
-          console.log('[seed] Menulis jadwal awal ke Realtime Database...');
+        const existing = snap.exists() ? snap.val() : null;
+        const count = existing ? Object.keys(existing).length : 0;
+        const versionOk = existing && existing['sen-01'] && existing['sen-01'].activity;
+        // Paksa update jadwal jika belum lengkap / masih data lama
+        if (!existing || count < 50 || !versionOk) {
+          console.log('[seed] Menulis/memulihkan jadwal lengkap ke Realtime Database...');
           const payload = {};
           INITIAL_SCHEDULE.forEach(item => {
             const { id, ...data } = item;
             payload[id] = data;
           });
           await set(scheduleRef, payload);
-          toast('Jadwal awal tersimpan ke cloud ☁️');
+          toast('Jadwal Makarima tersimpan ☁️');
         }
         const tsnap = await get(tasksRef);
         if (!tsnap.exists()) {
@@ -736,8 +740,8 @@
       const u1 = onValue(scheduleRef, (snapshot) => {
         setSyncStatus(true, 'Terhubung Live ⚡');
         const list = objToList(snapshot.val());
-        // Jika cloud kosong, pakai jadwal awal lokal (dan coba seed)
-        if (list.length === 0) {
+        // Jika cloud kosong / tidak lengkap, pakai jadwal awal lokal
+        if (list.length < 50) {
           scheduleList = [...INITIAL_SCHEDULE];
           seedIfEmpty();
         } else {
@@ -811,6 +815,19 @@
     document.getElementById('day-badge').textContent = currentDayName;
 
     // ---------- RENDER JADWAL HARI INI ----------
+    const getBadgeStyle = (cat) => {
+      switch (cat) {
+        case 'ibadah': return 'bg-pastel-yellow text-amber-900 border border-amber-200';
+        case 'tahfidz': return 'bg-pastel-lavender text-purple-900 border border-purple-200';
+        case 'kelas': return 'bg-pastel-soft text-pastel-primary border border-pastel-sky';
+        case 'perpus': return 'bg-pastel-pink text-pink-900 border border-pink-200';
+        case 'istirahat': return 'bg-slate-100 text-slate-500 font-normal';
+        case 'kegiatan_khusus': return 'bg-pastel-green text-emerald-900 border border-emerald-200';
+        case 'kosong': return 'bg-slate-50 text-slate-400 border border-dashed border-slate-200';
+        default: return 'bg-slate-100 text-slate-700';
+      }
+    };
+
     function renderTodaySchedule() {
       const container = document.getElementById('today-schedule-list');
       const targetDay = (currentDayName === 'Minggu' || currentDayName === 'Sabtu') ? 'Senin' : currentDayName;
